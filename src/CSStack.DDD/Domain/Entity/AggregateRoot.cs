@@ -28,7 +28,12 @@ namespace CSStack.DDD.Domain
 		}
 
 		/// <inheritdoc/>
-		public IReadOnlyList<IDomainEvent> PullDomainEvents()
+		/// <remarks>
+		/// This member is implemented explicitly so that it can be called only through <see cref="IDomainEventSource"/>.
+		/// Pulling the events clears them, and if application services or domain code pulled them,
+		/// the events would not be written to the outbox when changes are committed.
+		/// </remarks>
+		IReadOnlyList<IDomainEvent> IDomainEventSource.PullDomainEvents()
 		{
 			IReadOnlyList<IDomainEvent> events = [.. _domainEvents];
 			_domainEvents.Clear();

@@ -63,6 +63,7 @@ foreach (var aggregate in registeredAggregates)
 
 - `IDomainEventSource` は非ジェネリックなので、リフレクションを使わずに、どの型の集約からでもイベントを回収できます。
 - `PullDomainEvents()` はイベントの取得とクリアを 1 回の操作で行うため、同じイベントを誤って二重に配信することはありません。
+- `AggregateRoot<TSelf, TId>` は `PullDomainEvents()` を明示的に実装しているため、集約そのものからではなく `IDomainEventSource` 経由でだけ呼び出せます。これにより、アプリケーションサービスやドメインのコードがコミットの前にイベントを取り出してクリアし、Outbox に書き込まれなくなることを防ぎます。操作がどのイベントを発生させたかを確認するには（テストなど）、イベントをクリアしない `DomainEvents` を読み取ります。
 
 ## 配信のタイミング
 

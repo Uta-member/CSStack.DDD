@@ -54,9 +54,9 @@ This page explains why CSStack.DDD is designed the way it is.
 
 ## Domain events are pulled on commit
 
-**Decision:** Aggregates record events, and the infrastructure pulls them on commit through the non-generic `IDomainEventSource`.
+**Decision:** Aggregates record events, and the infrastructure pulls them on commit through the non-generic `IDomainEventSource`. `AggregateRoot<TSelf, TId>` implements `PullDomainEvents()` explicitly, so it is not visible on the aggregate itself. `DomainEvents` remains public.
 
-**Why:** Dispatching immediately could publish changes that are later rolled back. Pulling on commit allows the events to be written to an outbox in the same transaction. Retrieving and clearing in one call prevents duplicate dispatch.
+**Why:** Dispatching immediately could publish changes that are later rolled back. Pulling on commit allows the events to be written to an outbox in the same transaction. Retrieving and clearing in one call prevents duplicate dispatch. If application services or domain code could pull the events, they would be cleared and never written to the outbox. `DomainEvents` only reads the events without clearing them, and tests use it to check which events an operation raised.
 
 ## Event handlers and dispatching are not provided
 
