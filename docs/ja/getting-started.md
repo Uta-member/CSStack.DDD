@@ -150,6 +150,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 | 例外 | 意味 | 一般的な HTTP ステータス |
 |---|---|---|
 | `DomainValidationException` | 操作の入力がルールに違反しています。`Errors` にすべての違反が含まれます。 | 400 |
+| `DomainException` から派生したその他の型 | 入力に関するものではないビジネスルールが操作を拒否しました。ドメインで定義します。 | 422 |
 | `ConcurrencyConflictException` | 別のトランザクションが先に集約を変更しました。 | 409 |
 
 ASP.NET Core での例は [バリデーション](validation.md) を参照してください。

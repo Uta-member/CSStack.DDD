@@ -3,7 +3,7 @@ namespace CSStack.DDD.Domain
 	/// <summary>
 	/// The exception that is thrown when an operation of the domain is rejected because of validation errors.
 	/// </summary>
-	public sealed class DomainValidationException : Exception
+	public sealed class DomainValidationException : DomainException
 	{
 		/// <summary>
 		/// Gets the validation errors that caused the operation to be rejected.

@@ -150,6 +150,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 | 异常 | 含义 | 常用 HTTP 状态码 |
 |---|---|---|
 | `DomainValidationException` | 操作的输入违反了规则。`Errors` 中包含所有违规项。 | 400 |
+| 派生自 `DomainException` 的其他类型 | 与输入无关的业务规则拒绝了操作。在领域中定义。 | 422 |
 | `ConcurrencyConflictException` | 另一个事务抢先修改了该聚合。 | 409 |
 
 ASP.NET Core 的示例请参阅[校验](validation.md)。

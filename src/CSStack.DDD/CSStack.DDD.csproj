@@ -20,9 +20,9 @@
     <Copyright>Copyright (c) 2026 Uta Sugane</Copyright>
     <Description>A lightweight toolkit of building blocks for Domain-Driven Design (DDD) in C#. It provides interfaces and base classes for value objects, entities, aggregate roots, domain events, repositories and the unit of work, with no dependency on any persistence technology.</Description>
     <PackageTags>DDD;DomainDrivenDesign;CleanArchitecture;OnionArchitecture;ValueObject;Entity;AggregateRoot;DomainEvents;Repository;UnitOfWork</PackageTags>
-    <PackageReleaseNotes>Version 0.1.1.
+    <PackageReleaseNotes>Version 0.2.0.
 
-- Supports Native AOT and trimming. The net8.0 and net10.0 assemblies are marked as AOT-compatible and are built with the trimming and AOT analyzers. The public API is unchanged.
+- Adds the abstract class DomainException, the base class for exceptions that are thrown when the domain rejects an operation. DomainValidationException now derives from it. Derive the exceptions for business rules that are not about the input from DomainException, so that the upper layers can handle every rejected operation with a single type.
 
 Documentation: https://github.com/Uta-member/CSStack.DDD/tree/master/docs/en</PackageReleaseNotes>
     <PackageIcon>CSStack.png</PackageIcon>

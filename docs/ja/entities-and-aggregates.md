@@ -105,7 +105,18 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 ```
 
 - **上書きよりも意図を優先してください。** `UpdateMember(name, email, address, ...)` のようにすべてのフィールドを上書きする操作は、他者による変更を気づかないうちに破棄してしまうおそれがあります。`ChangeEmail` のような操作は、変更しようとしているものだけに触れます。
-- **入力に関するものではないビジネスルール**（たとえば「退会済みの会員はメールアドレスを変更できない」）も、操作の中で確認します。こうしたルールには独自の例外をスローしてください。
+- **入力に関するものではないビジネスルール**（たとえば「退会済みの会員はメールアドレスを変更できない」）も、操作の中で確認します。こうしたルールには、`DomainException` から派生した独自の例外をスローしてください。
+
+```csharp
+public sealed class MembershipRuleException : DomainException
+{
+	public MembershipRuleException(string message) : base(message)
+	{
+	}
+}
+```
+
+`DomainValidationException` も `DomainException` から派生しているので、プレゼンテーション層では、ドメインが拒否したすべての操作を 1 か所で処理できます。[バリデーション](validation.md#aspnet-core-での例)を参照してください。
 
 ## 操作を行ったのは誰か
 

@@ -99,6 +99,8 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 
 どちらも操作によって強制され、再構築時には強制されません。そのため、古いルールのもとで保存されたデータでも必ず読み込めます。
 
+「退会済みの会員はメールアドレスを変更できない」のような入力に関するものではないルールは、指し示す入力がないので、バリデーションエラーとしては報告しません。こうしたルールには、`DomainException` から派生した独自の例外をスローしてください。[操作](entities-and-aggregates.md#操作)を参照してください。
+
 ## エラーをメッセージに変換する
 
 エラーはメッセージを含みません。メッセージは、プレゼンテーション層で一度だけ組み立てます。
@@ -121,30 +123,39 @@ public sealed class ValidationMessageFormatter
 
 ## ASP.NET Core での例
 
-`DomainValidationException` は一度だけ、グローバルに処理します。そうすれば、コントローラーやユースケースにエラー処理のコードは不要になります。
+`DomainException` は一度だけ、グローバルに処理します。そうすれば、コントローラーやユースケースにエラー処理のコードは不要になります。`DomainValidationException` も `DomainException` なので、先に判定します。
 
 ```csharp
-public sealed class DomainValidationExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
+public sealed class DomainExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
 {
 	public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
 	{
-		if (exception is not DomainValidationException validation)
+		if (exception is DomainValidationException validation)
 		{
-			return false;
+			var errors = validation.Errors
+				.GroupBy(e => e.Path)
+				.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+
+			context.Response.StatusCode = StatusCodes.Status400BadRequest;
+			await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
+			return true;
 		}
 
-		var errors = validation.Errors
-			.GroupBy(e => e.Path)
-			.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+		if (exception is DomainException rejected)
+		{
+			context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+			await context.Response.WriteAsJsonAsync(new ProblemDetails { Detail = rejected.Message }, cancellationToken);
+			return true;
+		}
 
-		context.Response.StatusCode = StatusCodes.Status400BadRequest;
-		await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
-		return true;
+		return false;
 	}
 }
 ```
 
 パスは ASP.NET Core の `ModelState` のキーと同じ形式なので、クライアント側でそれぞれの入力フィールドに対応付けられます。
+
+それ以外の `DomainException` は、入力に関するものではないビジネスルールによる拒否なので、パスを持ちません。そのメッセージを利用者に表示し、ローカライズが必要な場合は、バリデーションエラーと同じように、例外の型をメッセージに変換してください。
 
 ## フォームの名前で入力を検証する
 
