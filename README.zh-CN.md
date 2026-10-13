@@ -11,7 +11,7 @@ CSStack.DDD 为值对象、实体、聚合根、领域事件、仓储和工作�
 - **值对象**：基于属性判断相等（`IValueObject`、`ISingleValueObject`）
 - **实体**：基于标识判断相等，并由基类强制保证（`IEntity`、`Entity`）
 - **聚合根**：可记录领域事件（`IAggregateRoot`、`AggregateRoot`）
-- **领域事件**：在提交时由基础设施层统一收集，可直接用于发件箱模式（Outbox）（`IDomainEvent`、`IDomainEventSource`）
+- **领域事件**：在提交时由基础设施层统一收集，可直接用于发件箱模式（Outbox）（`IDomainEvent`、`DomainEvent`、`IDomainEventSource`）
 - **校验**：使用强类型错误，并带有 `Address.PostalCode` 这样的成员路径（`IValidatable`、`ValidationError`）
 - **仓储**与**工作单元**：让事务不进入领域层（`IRepository`、`IDeletableRepository`、`IUnitOfWork`）
 
@@ -51,6 +51,9 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 	}
 }
 
+// 自动生成 EventId 的领域事件
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
+
 // 聚合根
 public sealed class Member : AggregateRoot<Member, MemberId>
 {
@@ -68,7 +71,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 

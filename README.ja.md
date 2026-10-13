@@ -11,7 +11,7 @@ CSStack.DDD は、値オブジェクト、エンティティ、集約ルート�
 - 属性による等価性を持つ**値オブジェクト**（`IValueObject`、`ISingleValueObject`）
 - 識別子による等価性を基底クラスで保証する**エンティティ**（`IEntity`、`Entity`）
 - ドメインイベントを記録する**集約ルート**（`IAggregateRoot`、`AggregateRoot`）
-- コミット時にインフラストラクチャが回収する、Outbox パターンにそのまま対応した**ドメインイベント**（`IDomainEvent`、`IDomainEventSource`）
+- コミット時にインフラストラクチャが回収する、Outbox パターンにそのまま対応した**ドメインイベント**（`IDomainEvent`、`DomainEvent`、`IDomainEventSource`）
 - 型付きのエラーと `Address.PostalCode` のようなメンバーパスを備えた**バリデーション**（`IValidatable`、`ValidationError`）
 - トランザクションをドメインから切り離す**リポジトリ**と **Unit of Work**（`IRepository`、`IDeletableRepository`、`IUnitOfWork`）
 
@@ -51,6 +51,9 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 	}
 }
 
+// EventId を自動生成するドメインイベント
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
+
 // 集約ルート
 public sealed class Member : AggregateRoot<Member, MemberId>
 {
@@ -68,7 +71,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 

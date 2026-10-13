@@ -5,8 +5,10 @@
 ## 定义事件
 
 ```csharp
-public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : IDomainEvent;
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
 ```
+
+`DomainEvent` 实现 `IDomainEvent`，默认通过 `Guid.NewGuid()` 生成 `EventId`。请显式传入 `OccurredAt`。从持久化存储恢复事件时，通过对象初始化器将 `EventId` 设为已保存的标识符；`with` 复制也会保留该标识符。如果需要其他表示方式，仍可直接实现 `IDomainEvent`。
 
 | 属性 | 用途 |
 |---|---|
@@ -31,7 +33,7 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
+	AddDomainEvent(new MemberEmailChanged(occurredAt, Id, email));
 }
 ```
 

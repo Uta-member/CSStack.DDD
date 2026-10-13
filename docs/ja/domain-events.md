@@ -5,8 +5,10 @@
 ## イベントの定義
 
 ```csharp
-public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : IDomainEvent;
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
 ```
+
+`DomainEvent` は `IDomainEvent` を実装し、既定で `Guid.NewGuid()` により `EventId` を生成します。`OccurredAt` は引数で渡します。永続化したイベントを復元するときは、オブジェクト初期化子で `EventId` に保存済みの識別子を設定してください。`with` によるコピーも識別子を維持します。別の表現が必要な場合は、引き続き `IDomainEvent` を直接実装できます。
 
 | プロパティ | 用途 |
 |---|---|
@@ -31,7 +33,7 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
+	AddDomainEvent(new MemberEmailChanged(occurredAt, Id, email));
 }
 ```
 

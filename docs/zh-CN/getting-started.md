@@ -70,7 +70,7 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 领域事件是对已发生事情的不可变记录。
 
 ```csharp
-public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : IDomainEvent;
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
 ```
 
 ## 第 3 步：聚合根
@@ -91,7 +91,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 

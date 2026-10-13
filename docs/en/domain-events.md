@@ -5,8 +5,10 @@ A domain event is a fact that something meaningful to the business has happened,
 ## Defining events
 
 ```csharp
-public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : IDomainEvent;
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
 ```
+
+`DomainEvent` implements `IDomainEvent` and generates `EventId` with `Guid.NewGuid()` by default. Pass `OccurredAt` explicitly. When restoring an event from persistence, set `EventId` with an object initializer to preserve the stored identifier; a `with` copy also preserves it. You can still implement `IDomainEvent` directly when you need a different representation.
 
 | Property | Purpose |
 |---|---|
@@ -31,7 +33,7 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
+	AddDomainEvent(new MemberEmailChanged(occurredAt, Id, email));
 }
 ```
 
