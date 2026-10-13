@@ -23,6 +23,7 @@
     <PackageReleaseNotes>Version 0.2.0.
 
 - Adds the abstract class DomainException, the base class for exceptions that are thrown when the domain rejects an operation. DomainValidationException now derives from it. Derive the exceptions for business rules that are not about the input from DomainException, so that the upper layers can handle every rejected operation with a single type.
+- Breaking change: replaces OutOfRange&lt;T&gt; with BelowMinimum(decimal Minimum, decimal Actual) and AboveMaximum(decimal Maximum, decimal Actual). The new errors are not generic, so they can be matched and serialized without knowing a type argument, and a rule with only one bound can be represented. Use them for numbers; TooLong and TooShort remain for length. For other kinds of values, such as dates, define your own error.
 
 Documentation: https://github.com/Uta-member/CSStack.DDD/tree/master/docs/en</PackageReleaseNotes>
     <PackageIcon>CSStack.png</PackageIcon>

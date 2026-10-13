@@ -21,9 +21,17 @@ The kind of error is represented by its type, and the values that describe it ar
 |---|---|
 | `Required` | A value is required but missing. |
 | `InvalidFormat` | A value is not in the expected format. |
-| `TooLong(MaxLength, ActualLength)` | A value is too long. |
-| `TooShort(MinLength, ActualLength)` | A value is too short. |
-| `OutOfRange<T>(Min, Max, Actual)` | A value is outside the allowed range. |
+| `TooLong(MaxLength, ActualLength)` | A string or a collection is too long. |
+| `TooShort(MinLength, ActualLength)` | A string or a collection is too short. |
+| `BelowMinimum(Minimum, Actual)` | A number is less than the minimum. |
+| `AboveMaximum(Maximum, Actual)` | A number is greater than the maximum. |
+
+`TooLong` and `TooShort` are about length; `BelowMinimum` and `AboveMaximum` are about the value itself. The bounds are inclusive and the values are `decimal`, so they can be matched without knowing a type argument. Check a range as two bounds. For other kinds of values, such as dates, define your own error.
+
+```csharp
+if (Value < 1) errors.Add(new BelowMinimum(1, Value));
+if (Value > 99) errors.Add(new AboveMaximum(99, Value));
+```
 
 Define domain-specific errors by deriving from `ValidationError`.
 
@@ -114,6 +122,8 @@ public sealed class ValidationMessageFormatter
 		InvalidFormat => "The format is invalid.",
 		TooLong e => $"Must be {e.MaxLength} characters or fewer.",
 		TooShort e => $"Must be {e.MinLength} characters or more.",
+		BelowMinimum e => $"Must be {e.Minimum} or more.",
+		AboveMaximum e => $"Must be {e.Maximum} or less.",
 		_ => "The value is invalid.",
 	};
 }

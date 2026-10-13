@@ -41,7 +41,7 @@ namespace CSStack.DDD.Tests
 			[
 				new TooLong(20, 25),
 				new Required() { Path = "First" },
-				new OutOfRange<int>(1, 10, 0),
+				new BelowMinimum(1, 0),
 			];
 
 			var result = errors.Under("Name");
@@ -50,7 +50,7 @@ namespace CSStack.DDD.Tests
 				[
 					new TooLong(20, 25) { Path = "Name" },
 					new Required() { Path = "Name.First" },
-					new OutOfRange<int>(1, 10, 0) { Path = "Name" },
+					new BelowMinimum(1, 0) { Path = "Name" },
 				],
 				result);
 		}
