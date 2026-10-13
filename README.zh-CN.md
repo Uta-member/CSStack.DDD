@@ -92,6 +92,8 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 }
 ```
 
+对于集合元素，使用 `line.Validate().Under(nameof(Lines), i)` 构建 `Lines[2].Quantity` 这样的路径。使用 `SelectMany` 校验所有元素的示例请参阅[校验](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/zh-CN/validation.md)。
+
 ## 文档
 
 | 主题 | 说明 |

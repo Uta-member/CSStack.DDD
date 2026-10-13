@@ -51,7 +51,7 @@ Each level adds only the name of its own member with `Under`. A value object doe
 OrderLine.Quantity.Validate()    → TooLong { Path = "" }
   ↓ OrderLine adds .Under("Quantity")
 OrderLine.Validate()             → TooLong { Path = "Quantity" }
-  ↓ Order adds .Under("Lines[2]")
+  ↓ Order adds .Under("Lines", 2)
 Order.Validate()                 → TooLong { Path = "Lines[2].Quantity" }
 ```
 
@@ -60,9 +60,11 @@ public IReadOnlyList<ValidationError> Validate() =>
 [
 	.. ShippingAddress.Validate().Under(nameof(ShippingAddress)),
 	.. DeliveryPeriod.Validate().Under(nameof(DeliveryPeriod)),
-	.. Lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+	.. Lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 ];
 ```
+
+For collection elements, use `Under(name, index)` to build paths such as `Lines[2].Quantity`. The index is zero-based; a negative index throws `ArgumentOutOfRangeException`. The original errors, their types and their values are preserved, and enumeration is deferred until the result is enumerated. Combine it with the indexed `SelectMany` overload to validate every element in order, as shown above; no separate `ValidateEach` helper is needed.
 
 A rule that spans several properties (for example, "the start date must be before the end date") is reported with an empty path, as an error of the object as a whole.
 
@@ -85,7 +87,7 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 	[
 		.. address.Validate().Under(nameof(ShippingAddress)),
 		.. period.Validate().Under(nameof(DeliveryPeriod)),
-		.. lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+		.. lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 	];
 	if (lines.Count == 0)
 	{

@@ -15,7 +15,7 @@ namespace CSStack.DDD.Domain
 		/// </summary>
 		/// <remarks>
 		/// Errors on the object itself have an empty <see cref="ValidationError.Path"/>.
-		/// Errors of child members should be prefixed with the member name using <see cref="ValidationErrorExtensions.Under"/>.
+		/// Errors of child members should be prefixed with the member name using <see cref="ValidationErrorExtensions.Under(IEnumerable{ValidationError}, string)"/>.
 		/// </remarks>
 		/// <returns>The rule violations, or an empty list if the state is valid.</returns>
 		IReadOnlyList<ValidationError> Validate();

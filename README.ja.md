@@ -92,6 +92,8 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 }
 ```
 
+コレクションの要素には `line.Validate().Under(nameof(Lines), i)` を使い、`Lines[2].Quantity` のようなパスを組み立てます。`SelectMany` で全要素を検証する例は[バリデーション](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/ja/validation.md)を参照してください。
+
 ## ドキュメント
 
 | トピック | 内容 |

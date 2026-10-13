@@ -71,6 +71,94 @@ namespace CSStack.DDD.Tests
 			Assert.Empty(Array.Empty<ValidationError>().Under("Name"));
 		}
 
+		[Theory]
+		[InlineData(0, "Lines[0]")]
+		[InlineData(2, "Lines[2]")]
+		[InlineData(int.MaxValue, "Lines[2147483647]")]
+		public void UnderWithIndexSetsPathOfErrorOnElementItself(int index, string path)
+		{
+			ValidationError[] errors = [new Required()];
+
+			Assert.Equal([new Required() { Path = path }], errors.Under("Lines", index));
+		}
+
+		[Fact]
+		public void UnderWithIndexComposesNestedCollectionPaths()
+		{
+			ValidationError[] errors = [new BelowMinimum(1, 0) { Path = "Quantity" }];
+
+			var result = errors.Under("Lines", 2).Under("Orders", 1).Under("Customer");
+
+			Assert.Equal([new BelowMinimum(1, 0) { Path = "Customer.Orders[1].Lines[2].Quantity" }], result);
+			Assert.Equal("Quantity", errors[0].Path);
+		}
+
+		[Fact]
+		public void UnderWithIndexKeepsTypeValuesAndOrderOfErrors()
+		{
+			ValidationError[] errors = [new TooLong(20, 25), new Required() { Path = "Product" }];
+
+			Assert.Equal(
+				[new TooLong(20, 25) { Path = "Lines[2]" }, new Required() { Path = "Lines[2].Product" }],
+				errors.Under("Lines", 2));
+		}
+
+		[Fact]
+		public void UnderWithIndexReturnsEmptyForNoErrors()
+		{
+			Assert.Empty(Array.Empty<ValidationError>().Under("Lines", 0));
+		}
+
+		[Theory]
+		[InlineData(-1)]
+		[InlineData(int.MinValue)]
+		public void UnderWithIndexRejectsNegativeIndexImmediately(int index)
+		{
+			var exception = Assert.Throws<ArgumentOutOfRangeException>(() => Array.Empty<ValidationError>().Under("Lines", index));
+
+			Assert.Equal("index", exception.ParamName);
+			Assert.Equal(index, exception.ActualValue);
+		}
+
+		[Fact]
+		public void UnderWithIndexDefersEnumeration()
+		{
+			var count = 0;
+			IEnumerable<ValidationError> Errors()
+			{
+				count++;
+				yield return new Required();
+			}
+
+			var result = Errors().Under("Lines", 2);
+
+			Assert.Equal(0, count);
+			Assert.Equal([new Required() { Path = "Lines[2]" }], result);
+			Assert.Equal(1, count);
+		}
+
+		[Fact]
+		public void UnderWithIndexCombinesElementErrorsUsingTheirOriginalPositions()
+		{
+			ValidationError[][] elementErrors =
+			[
+				[new Required()],
+				[],
+				[new BelowMinimum(1, 0) { Path = "Quantity" }, new InvalidFormat() { Path = "Product" }],
+			];
+
+			var result = elementErrors.SelectMany((errors, i) => errors.Under("Lines", i));
+			var exception = Assert.Throws<DomainValidationException>(() => result.ThrowIfInvalid());
+
+			Assert.Equal(
+				[
+					new Required() { Path = "Lines[0]" },
+					new BelowMinimum(1, 0) { Path = "Lines[2].Quantity" },
+					new InvalidFormat() { Path = "Lines[2].Product" },
+				],
+				exception.Errors);
+		}
+
 		[Fact]
 		public void ThrowIfInvalidDoesNotThrowForNoErrors()
 		{

@@ -28,6 +28,7 @@
     <PackageTags>DDD;DomainDrivenDesign;CleanArchitecture;OnionArchitecture;ValueObject;Entity;AggregateRoot;DomainEvents;Repository;UnitOfWork</PackageTags>
     <PackageReleaseNotes>Version 0.3.0.
 
+- Adds Under(name, index) to compose zero-based collection element paths such as Lines[2].Quantity. Negative indices throw ArgumentOutOfRangeException. This is an additive API change; the existing Under(name) overload remains supported.
 - Adds the abstract DomainEvent(DateTimeOffset OccurredAt) record implementing IDomainEvent. EventId defaults to a new Guid and can be initialized with a stored identifier when restoring an event. OccurredAt is still supplied by the caller. This is an additive API change; existing IDomainEvent implementations remain supported.
 - DomainValidationException messages now include the paths and type names of the first 10 validation errors in input order, followed by the number of remaining errors. Errors with an empty path are listed by type name alone; error property values are not included. The Errors property still retains every error. Public API signatures are unchanged.
 - Adds AggregateNotFoundException and GetAsync, an extension method of IRepository&lt;TAggregate, TId&gt;, to CSStack.DDD.Application. GetAsync throws AggregateNotFoundException if the aggregate does not exist, so that use cases do not each throw their own exception and the upper layers can turn a missing aggregate into HTTP 404 in one place. FindAsync still returns null, for callers to which a missing aggregate is a normal result.
