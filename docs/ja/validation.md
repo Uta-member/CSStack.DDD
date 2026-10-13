@@ -97,6 +97,14 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 }
 ```
 
+## ログ用の例外メッセージ
+
+`DomainValidationException.Message` は、入力順に先頭 10 件のパスと型名を表示します。たとえば `One or more validation errors occurred: Name (TooLong), Email (InvalidFormat)` となります。パスが空のエラーは、`Required` のように型名だけを表示します。エラーのプロパティの値は含めません。
+
+10 件を超える場合は、`, ... (3 more)` のように省略した件数を末尾に表示します。`Errors` には引き続きすべてのエラーが含まれます。空のシーケンスでコンストラクターを呼んだ場合は、従来どおり `One or more validation errors occurred.` となります。
+
+このメッセージはログでの診断用です。利用者向けのメッセージは、後述のようにプレゼンテーション層で `Errors` から組み立てます。
+
 ## 2 種類のルール
 
 | | 値のルール | 操作のポリシー |

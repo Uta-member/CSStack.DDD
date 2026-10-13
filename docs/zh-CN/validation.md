@@ -97,6 +97,14 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 }
 ```
 
+## 用于日志的异常消息
+
+`DomainValidationException.Message` 按输入顺序列出前 10 个错误的路径和类型名，例如 `One or more validation errors occurred: Name (TooLong), Email (InvalidFormat)`。路径为空的错误只显示类型名，例如 `Required`。消息不包含错误属性的值。
+
+如果错误超过 10 个，消息末尾会显示省略的数量，例如 `, ... (3 more)`。`Errors` 仍包含所有错误。如果用空序列调用构造函数，消息仍为 `One or more validation errors occurred.`。
+
+此消息用于日志诊断。面向用户的消息应在表示层中根据 `Errors` 组装，如下文所示。
+
 ## 两类规则
 
 | | 值的规则 | 操作的策略 |
