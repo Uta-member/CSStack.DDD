@@ -2,5 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/CSStack.DDD/CSStack.DDD.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/CSStack.DDD.Tests/CSStack.DDD.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -1,6 +1,6 @@
 name: Build
 
-# master へのプッシュとプルリクエストで、ビルドとパックが通ることを確認する。
+# master へのプッシュとプルリクエストで、ビルド、テスト、パックが通ることを確認する。
 on:
   push:
     branches: [master]
@@ -24,6 +24,9 @@ jobs:
 
       - name: Build
         run: dotnet build CSStack.DDD.slnx -c Release
+
+      - name: Test
+        run: dotnet test --solution CSStack.DDD.slnx -c Release --no-build
 
       - name: Pack
         run: dotnet pack src/CSStack.DDD/CSStack.DDD.csproj -c Release --no-build -o artifacts
