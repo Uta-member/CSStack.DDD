@@ -20,6 +20,9 @@ namespace CSStack.DDD.Domain
 		/// <remarks>
 		/// Nothing is deleted until the unit of work is committed.
 		/// Whether the data is physically deleted or kept for auditing is decided by the implementation.
+		/// The unit of work must also collect domain events from aggregates registered with this method
+		/// through <see cref="IDomainEventSource.PullDomainEvents"/> and write them to the outbox
+		/// in the same transaction as the deletion.
 		/// </remarks>
 		/// <param name="aggregate">The aggregate to delete.</param>
 		void Delete(TAggregate aggregate);
