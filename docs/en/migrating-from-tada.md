@@ -49,7 +49,7 @@ The guide is written against TADA 4.0.0. If you use an older version, read [Migr
 | `ICommandService<...>`, `ICommandServiceDTO`, `IQueryService<...>`, `IQueryServiceDTO` | None | Declare `ExecuteAsync` in your own interfaces |
 | `Optional<T>`, `OptionalExtensions` | None | See [Partial updates without `Optional<T>`](#step-5-partial-updates-without-optionalt) |
 | `TADAException`, `NestedTransactionException`, `TransactionSessionNotFoundException` | None | |
-| None | `ValidationError`, `Required`, `InvalidFormat`, `TooLong`, `TooShort`, `OutOfRange<T>`, `DomainException`, `DomainValidationException` | |
+| None | `ValidationError`, `Required`, `InvalidFormat`, `TooLong`, `TooShort`, `BelowMinimum`, `AboveMaximum`, `DomainException`, `DomainValidationException` | |
 | None | `ConcurrencyConflictException` | |
 
 ## Step 1: Replace the package

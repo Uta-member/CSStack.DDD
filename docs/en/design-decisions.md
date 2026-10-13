@@ -34,6 +34,12 @@ This page explains why CSStack.DDD is designed the way it is.
 
 **Why:** String codes with a dictionary of `object` arguments are hard to use correctly. Typed records can be handled with pattern matching, compared by value in tests and serialized with a type discriminator. A list of exceptions was also considered, but exceptions carry stack traces, messages and mutable data that a diagnosis does not need.
 
+## Built-in errors for numbers are not generic
+
+**Decision:** Values outside numeric bounds are reported with `BelowMinimum(decimal Minimum, decimal Actual)` and `AboveMaximum(decimal Maximum, decimal Actual)`. There is no generic range error.
+
+**Why:** A generic error such as `OutOfRange<T>` cannot be matched without knowing `T`, and each closed type would have to be registered for serialization. `decimal` represents integers and decimal numbers exactly. A range with both bounds required cannot express a rule with only one bound, such as "1 or more", so each bound is its own error. The names differ from `TooLong` and `TooShort`, which are about length, so that the two are not confused. Other kinds of values, such as dates, are left to domain-specific errors.
+
 ## Errors have paths
 
 **Decision:** `ValidationError.Path` is a dotted string, built by each level with `Under`.

@@ -21,9 +21,17 @@ CSStack.DDD では、バリデーションを 2 つの役割に分けていま�
 |---|---|
 | `Required` | 値が必須だが指定されていない。 |
 | `InvalidFormat` | 値が期待される形式ではない。 |
-| `TooLong(MaxLength, ActualLength)` | 値が長すぎる。 |
-| `TooShort(MinLength, ActualLength)` | 値が短すぎる。 |
-| `OutOfRange<T>(Min, Max, Actual)` | 値が許容範囲外である。 |
+| `TooLong(MaxLength, ActualLength)` | 文字列やコレクションが長すぎる。 |
+| `TooShort(MinLength, ActualLength)` | 文字列やコレクションが短すぎる。 |
+| `BelowMinimum(Minimum, Actual)` | 数値が最小値より小さい。 |
+| `AboveMaximum(Maximum, Actual)` | 数値が最大値より大きい。 |
+
+`TooLong` と `TooShort` は長さについて、`BelowMinimum` と `AboveMaximum` は値そのものについてのエラーです。境界は境界値を含み、値は `decimal` なので、型引数を知らなくてもパターンマッチできます。範囲は 2 つの境界として確認します。日付などほかの種類の値には、独自のエラーを定義してください。
+
+```csharp
+if (Value < 1) errors.Add(new BelowMinimum(1, Value));
+if (Value > 99) errors.Add(new AboveMaximum(99, Value));
+```
 
 ドメイン固有のエラーは、`ValidationError` から派生させて定義します。
 
@@ -114,6 +122,8 @@ public sealed class ValidationMessageFormatter
 		InvalidFormat => "The format is invalid.",
 		TooLong e => $"Must be {e.MaxLength} characters or fewer.",
 		TooShort e => $"Must be {e.MinLength} characters or more.",
+		BelowMinimum e => $"Must be {e.Minimum} or more.",
+		AboveMaximum e => $"Must be {e.Maximum} or less.",
 		_ => "The value is invalid.",
 	};
 }

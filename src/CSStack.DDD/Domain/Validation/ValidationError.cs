@@ -29,6 +29,9 @@ namespace CSStack.DDD.Domain
 	/// <summary>
 	/// Indicates that a value is longer than the maximum length.
 	/// </summary>
+	/// <remarks>
+	/// Use this for the length of a string or a collection. For a numeric value, use <see cref="AboveMaximum"/>.
+	/// </remarks>
 	/// <param name="MaxLength">The maximum allowed length.</param>
 	/// <param name="ActualLength">The actual length of the value.</param>
 	public sealed record TooLong(int MaxLength, int ActualLength) : ValidationError;
@@ -36,16 +39,35 @@ namespace CSStack.DDD.Domain
 	/// <summary>
 	/// Indicates that a value is shorter than the minimum length.
 	/// </summary>
+	/// <remarks>
+	/// Use this for the length of a string or a collection. For a numeric value, use <see cref="BelowMinimum"/>.
+	/// </remarks>
 	/// <param name="MinLength">The minimum allowed length.</param>
 	/// <param name="ActualLength">The actual length of the value.</param>
 	public sealed record TooShort(int MinLength, int ActualLength) : ValidationError;
 
 	/// <summary>
-	/// Indicates that a value is outside the allowed range.
+	/// Indicates that a value is less than the minimum value.
 	/// </summary>
-	/// <typeparam name="T">The type of the value.</typeparam>
-	/// <param name="Min">The minimum allowed value.</param>
-	/// <param name="Max">The maximum allowed value.</param>
+	/// <remarks>
+	/// Use this for numeric values such as quantities and amounts. For the length of a string or a collection, use <see cref="TooShort"/>.
+	/// The type is not generic so that it can be matched with <c>case BelowMinimum</c> and serialized with a single type discriminator.
+	/// <see cref="decimal"/> represents integers and decimal numbers exactly.
+	/// Define your own error for other kinds of values, such as dates, or for an exclusive bound.
+	/// A range is checked as two bounds, so a rule with only one bound can also be represented.
+	/// </remarks>
+	/// <param name="Minimum">The minimum allowed value, inclusive.</param>
 	/// <param name="Actual">The actual value.</param>
-	public sealed record OutOfRange<T>(T Min, T Max, T Actual) : ValidationError where T : IComparable<T>;
+	public sealed record BelowMinimum(decimal Minimum, decimal Actual) : ValidationError;
+
+	/// <summary>
+	/// Indicates that a value is greater than the maximum value.
+	/// </summary>
+	/// <remarks>
+	/// Use this for numeric values such as quantities and amounts. For the length of a string or a collection, use <see cref="TooLong"/>.
+	/// See <see cref="BelowMinimum"/> for the design.
+	/// </remarks>
+	/// <param name="Maximum">The maximum allowed value, inclusive.</param>
+	/// <param name="Actual">The actual value.</param>
+	public sealed record AboveMaximum(decimal Maximum, decimal Actual) : ValidationError;
 }

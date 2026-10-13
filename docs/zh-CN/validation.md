@@ -21,9 +21,17 @@ CSStack.DDD 将校验分为两种角色。
 |---|---|
 | `Required` | 需要值但缺失。 |
 | `InvalidFormat` | 值不符合预期格式。 |
-| `TooLong(MaxLength, ActualLength)` | 值过长。 |
-| `TooShort(MinLength, ActualLength)` | 值过短。 |
-| `OutOfRange<T>(Min, Max, Actual)` | 值超出允许范围。 |
+| `TooLong(MaxLength, ActualLength)` | 字符串或集合过长。 |
+| `TooShort(MinLength, ActualLength)` | 字符串或集合过短。 |
+| `BelowMinimum(Minimum, Actual)` | 数值小于最小值。 |
+| `AboveMaximum(Maximum, Actual)` | 数值大于最大值。 |
+
+`TooLong` 和 `TooShort` 针对长度，`BelowMinimum` 和 `AboveMaximum` 针对值本身。边界包含边界值，值的类型是 `decimal`，因此无需知道类型参数即可进行模式匹配。范围按两个边界分别检查。对于日期等其他种类的值，请定义自己的错误。
+
+```csharp
+if (Value < 1) errors.Add(new BelowMinimum(1, Value));
+if (Value > 99) errors.Add(new AboveMaximum(99, Value));
+```
 
 通过派生 `ValidationError` 来定义领域特有的错误。
 
@@ -114,6 +122,8 @@ public sealed class ValidationMessageFormatter
 		InvalidFormat => "The format is invalid.",
 		TooLong e => $"Must be {e.MaxLength} characters or fewer.",
 		TooShort e => $"Must be {e.MinLength} characters or more.",
+		BelowMinimum e => $"Must be {e.Minimum} or more.",
+		AboveMaximum e => $"Must be {e.Maximum} or less.",
 		_ => "The value is invalid.",
 	};
 }

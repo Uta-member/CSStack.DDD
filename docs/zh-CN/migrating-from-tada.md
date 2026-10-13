@@ -49,7 +49,7 @@ CSStack.DDD 是 CSStack.TADA 的后继。本指南介绍如何将使用 TADA 的
 | `ICommandService<...>`、`ICommandServiceDTO`、`IQueryService<...>`、`IQueryServiceDTO` | 无 | 在各自的接口中声明 `ExecuteAsync` |
 | `Optional<T>`、`OptionalExtensions` | 无 | 参阅第 5 步 |
 | `TADAException`、`NestedTransactionException`、`TransactionSessionNotFoundException` | 无 | |
-| 无 | `ValidationError`、`Required`、`InvalidFormat`、`TooLong`、`TooShort`、`OutOfRange<T>`、`DomainException`、`DomainValidationException` | |
+| 无 | `ValidationError`、`Required`、`InvalidFormat`、`TooLong`、`TooShort`、`BelowMinimum`、`AboveMaximum`、`DomainException`、`DomainValidationException` | |
 | 无 | `ConcurrencyConflictException` | |
 
 ## 第 1 步：替换包
