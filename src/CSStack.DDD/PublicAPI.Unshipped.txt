@@ -1,0 +1,48 @@
+#nullable enable
+CSStack.DDD.Domain.AboveMaximum
+CSStack.DDD.Domain.AboveMaximum.AboveMaximum(decimal Maximum, decimal Actual) -> void
+CSStack.DDD.Domain.AboveMaximum.Actual.get -> decimal
+CSStack.DDD.Domain.AboveMaximum.Actual.init -> void
+CSStack.DDD.Domain.AboveMaximum.Deconstruct(out decimal Maximum, out decimal Actual) -> void
+CSStack.DDD.Domain.AboveMaximum.Equals(CSStack.DDD.Domain.AboveMaximum? other) -> bool
+CSStack.DDD.Domain.AboveMaximum.Maximum.get -> decimal
+CSStack.DDD.Domain.AboveMaximum.Maximum.init -> void
+*REMOVED*CSStack.DDD.Domain.AggregateRoot<TSelf, TId>.PullDomainEvents() -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.IDomainEvent!>!
+CSStack.DDD.Domain.BelowMinimum
+CSStack.DDD.Domain.BelowMinimum.Actual.get -> decimal
+CSStack.DDD.Domain.BelowMinimum.Actual.init -> void
+CSStack.DDD.Domain.BelowMinimum.BelowMinimum(decimal Minimum, decimal Actual) -> void
+CSStack.DDD.Domain.BelowMinimum.Deconstruct(out decimal Minimum, out decimal Actual) -> void
+CSStack.DDD.Domain.BelowMinimum.Equals(CSStack.DDD.Domain.BelowMinimum? other) -> bool
+CSStack.DDD.Domain.BelowMinimum.Minimum.get -> decimal
+CSStack.DDD.Domain.BelowMinimum.Minimum.init -> void
+CSStack.DDD.Domain.IDeletableRepository<TAggregate, TId>.Delete(TAggregate! aggregate) -> void
+CSStack.DDD.Domain.IRepository<TAggregate, TId>.Save(TAggregate! aggregate) -> void
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Actual.get -> T
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Actual.init -> void
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Deconstruct(out T Min, out T Max, out T Actual) -> void
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Equals(CSStack.DDD.Domain.OutOfRange<T>? other) -> bool
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Max.get -> T
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Max.init -> void
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Min.get -> T
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.Min.init -> void
+*REMOVED*CSStack.DDD.Domain.OutOfRange<T>.OutOfRange(T Min, T Max, T Actual) -> void
+override CSStack.DDD.Domain.AboveMaximum.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.AboveMaximum.GetHashCode() -> int
+override CSStack.DDD.Domain.AboveMaximum.ToString() -> string!
+override CSStack.DDD.Domain.BelowMinimum.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.BelowMinimum.GetHashCode() -> int
+override CSStack.DDD.Domain.BelowMinimum.ToString() -> string!
+*REMOVED*override CSStack.DDD.Domain.OutOfRange<T>.Equals(object? obj) -> bool
+*REMOVED*override CSStack.DDD.Domain.OutOfRange<T>.GetHashCode() -> int
+*REMOVED*override CSStack.DDD.Domain.OutOfRange<T>.ToString() -> string!
+override sealed CSStack.DDD.Domain.AboveMaximum.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+override sealed CSStack.DDD.Domain.BelowMinimum.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+*REMOVED*override sealed CSStack.DDD.Domain.OutOfRange<T>.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+static CSStack.DDD.Domain.AboveMaximum.operator !=(CSStack.DDD.Domain.AboveMaximum? left, CSStack.DDD.Domain.AboveMaximum? right) -> bool
+static CSStack.DDD.Domain.AboveMaximum.operator ==(CSStack.DDD.Domain.AboveMaximum? left, CSStack.DDD.Domain.AboveMaximum? right) -> bool
+static CSStack.DDD.Domain.BelowMinimum.operator !=(CSStack.DDD.Domain.BelowMinimum? left, CSStack.DDD.Domain.BelowMinimum? right) -> bool
+static CSStack.DDD.Domain.BelowMinimum.operator ==(CSStack.DDD.Domain.BelowMinimum? left, CSStack.DDD.Domain.BelowMinimum? right) -> bool
+*REMOVED*static CSStack.DDD.Domain.OutOfRange<T>.operator !=(CSStack.DDD.Domain.OutOfRange<T>? left, CSStack.DDD.Domain.OutOfRange<T>? right) -> bool
+*REMOVED*static CSStack.DDD.Domain.OutOfRange<T>.operator ==(CSStack.DDD.Domain.OutOfRange<T>? left, CSStack.DDD.Domain.OutOfRange<T>? right) -> bool

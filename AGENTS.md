@@ -27,6 +27,9 @@ src/CSStack.DDD/
   Application/                   名前空間 CSStack.DDD.Application
                                  IUnitOfWork, ConcurrencyConflictException
   Polyfills/                     netstandard2.0 向けの IsExternalInit
+  PublicAPI.Shipped.txt          リリース済みの公開 API（全ターゲット共通）
+  PublicAPI.Unshipped.txt        未リリースの公開 API の変更（全ターゲット共通）
+  PublicAPI/{ターゲット}/          ターゲットによって異なる公開 API
 docs/{en,ja,zh-CN}/              利用者向けドキュメント（8 ページ × 3 言語。migrating-from-tada.md は前身の CSStack.TADA からの移行ガイド）
 README.md / README.ja.md / README.zh-CN.md
 global.json                      dotnet test で Microsoft.Testing.Platform を使う設定
@@ -61,6 +64,21 @@ dotnet test --solution CSStack.DDD.slnx
 - キーを変えたり、厳密な名前をやめたりしないでください。アセンブリの識別子が変わり、参照しているすべてのアセンブリにとって破壊的変更になります。`AssemblyTests` が公開キートークンを確認しています。
 - `AssemblyVersion` はメジャーバージョンだけ（`{Major}.0.0.0`、0.x の間は `0.0.0.0`）にしています。.NET Framework のアプリがメジャーバージョン内で更新したときに、バインディングリダイレクトを不要にするためです。`FileVersion` と `InformationalVersion` には完全なバージョンが入ります。
 
+### 公開 API とパッケージの互換性
+
+公開 API の意図しない変更をビルドで検出します（イシュー #11）。
+
+- `Microsoft.CodeAnalysis.PublicApiAnalyzers` が、公開 API を `PublicAPI.Shipped.txt`（リリース済み）と `PublicAPI.Unshipped.txt`（未リリースの変更）に照らして確認します。どちらにもない公開 API を追加したり、記載された API を消したりすると、ビルドが失敗します（RS0016、RS0017 など）。
+- ターゲットによって異なる API は `PublicAPI/{ターゲット}/` のファイルに書きます。いまは record の `<Clone>$()` だけです（netstandard2.0 では基底の `ValidationError` を返し、net8.0 以降では共変戻り値で派生型を返す）。それ以外はプロジェクト直下の共通のファイルに書きます。
+- 公開 API を追加・変更・削除したときは、`PublicAPI.Unshipped.txt` を同じ変更で更新します。
+  - 追加した API は 1 行ずつ書く。IDE のコード修正か、`dotnet format analyzers src/CSStack.DDD/CSStack.DDD.csproj --diagnostics RS0016 --severity info` で追記できる（ただし `dotnet format` は最初のターゲットの netstandard2.0 で解析するので、ターゲットによって異なる行は手で直す）。
+  - 削除した API は、Shipped にある行を `*REMOVED*` を先頭に付けて Unshipped に書く。
+  - 引数や戻り値の null 許容の注釈だけが変わった場合は削除扱いにならない。新しい注釈の行だけを Unshipped に書く。
+  - record を追加・削除するときは、`PublicAPI/` の 3 つのターゲットのファイルにある `<Clone>$()` の行も更新する。
+- 公開 API の変更は破壊的変更かどうかを確認し、`PackageReleaseNotes` に書きます。Unshipped のファイルの差分が、そのまま次のリリースでの API の変更の一覧になります。
+- `EnablePackageValidation` により、パック時にパッケージ内のターゲット間の互換性（netstandard2.0 の API が net8.0 以降にもあるかなど）を確認します。1.0 をリリースした後は `PackageValidationBaselineVersion` に直前のバージョンを設定し、前のバージョンとの互換性も確認します。
+- アナライザーは `PrivateAssets="all"` で参照しており、パッケージの依存関係には含まれません。パッケージ検証は SDK の機能なので、パッケージの参照は不要です。
+
 ## リリース
 
 master へのプッシュとプルリクエストでは、`.github/workflows/build.yml` がビルド、テスト、パックを確認します。
@@ -69,6 +87,8 @@ GitHub でリリースを公開すると、`.github/workflows/publish.yml` が N
 
 - タグは `v1.2.3`（プレリリースは `v1.2.3-beta.1`）。先頭の `v` を除いた値が `-p:Version` としてビルドとパックに渡される。
 - リリース前に `CSStack.DDD.csproj` の `PackageReleaseNotes` を更新してコミットしておく。
+- リリース前に、すべての `PublicAPI.Unshipped.txt`（プロジェクト直下と `PublicAPI/{ターゲット}/`）の内容を同じ場所の `PublicAPI.Shipped.txt` に移してコミットしておく。`*REMOVED*` の行と、それに対応する Shipped の行は両方消す。null 許容の注釈が変わった API は、Shipped の古い行を新しい行で置き換える。Unshipped には `#nullable enable` の行だけを残す。
+- 1.0 以降は、リリースしたら `PackageValidationBaselineVersion` をそのバージョンに更新する。
 - NuGet.org へは Trusted Publishing（OIDC）で認証する。API キーはリポジトリに置かない。
 
 ## コーディング規約

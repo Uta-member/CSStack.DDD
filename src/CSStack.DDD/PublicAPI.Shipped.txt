@@ -1,0 +1,124 @@
+#nullable enable
+abstract CSStack.DDD.Domain.Entity<TSelf, TId>.Id.get -> TId
+abstract CSStack.DDD.Domain.ValidationError.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
+CSStack.DDD.Application.ConcurrencyConflictException
+CSStack.DDD.Application.ConcurrencyConflictException.AggregateId.get -> object!
+CSStack.DDD.Application.ConcurrencyConflictException.AggregateType.get -> System.Type!
+CSStack.DDD.Application.ConcurrencyConflictException.ConcurrencyConflictException(System.Type! aggregateType, object! aggregateId, System.Exception? innerException = null) -> void
+CSStack.DDD.Application.IUnitOfWork
+CSStack.DDD.Application.IUnitOfWork.CommitAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+CSStack.DDD.Domain.AggregateRoot<TSelf, TId>
+CSStack.DDD.Domain.AggregateRoot<TSelf, TId>.AddDomainEvent(CSStack.DDD.Domain.IDomainEvent! domainEvent) -> void
+CSStack.DDD.Domain.AggregateRoot<TSelf, TId>.AggregateRoot() -> void
+CSStack.DDD.Domain.AggregateRoot<TSelf, TId>.DomainEvents.get -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.IDomainEvent!>!
+CSStack.DDD.Domain.AggregateRoot<TSelf, TId>.PullDomainEvents() -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.IDomainEvent!>!
+CSStack.DDD.Domain.DomainException
+CSStack.DDD.Domain.DomainException.DomainException(string! message) -> void
+CSStack.DDD.Domain.DomainException.DomainException(string! message, System.Exception? innerException) -> void
+CSStack.DDD.Domain.DomainValidationException
+CSStack.DDD.Domain.DomainValidationException.DomainValidationException(System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>! errors) -> void
+CSStack.DDD.Domain.DomainValidationException.Errors.get -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.ValidationError!>!
+CSStack.DDD.Domain.Entity<TSelf, TId>
+CSStack.DDD.Domain.Entity<TSelf, TId>.Entity() -> void
+CSStack.DDD.Domain.Entity<TSelf, TId>.Equals(TSelf? other) -> bool
+CSStack.DDD.Domain.IAggregateRoot<TSelf, TId>
+CSStack.DDD.Domain.IDeletableRepository<TAggregate, TId>
+CSStack.DDD.Domain.IDeletableRepository<TAggregate, TId>.Delete(TAggregate aggregate) -> void
+CSStack.DDD.Domain.IDomainEvent
+CSStack.DDD.Domain.IDomainEvent.EventId.get -> System.Guid
+CSStack.DDD.Domain.IDomainEvent.OccurredAt.get -> System.DateTimeOffset
+CSStack.DDD.Domain.IDomainEventSource
+CSStack.DDD.Domain.IDomainEventSource.DomainEvents.get -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.IDomainEvent!>!
+CSStack.DDD.Domain.IDomainEventSource.PullDomainEvents() -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.IDomainEvent!>!
+CSStack.DDD.Domain.IEntity<TSelf, TId>
+CSStack.DDD.Domain.IEntity<TSelf, TId>.Id.get -> TId
+CSStack.DDD.Domain.InvalidFormat
+CSStack.DDD.Domain.InvalidFormat.Equals(CSStack.DDD.Domain.InvalidFormat? other) -> bool
+CSStack.DDD.Domain.InvalidFormat.InvalidFormat() -> void
+CSStack.DDD.Domain.IRepository<TAggregate, TId>
+CSStack.DDD.Domain.IRepository<TAggregate, TId>.FindAsync(TId id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TAggregate?>!
+CSStack.DDD.Domain.IRepository<TAggregate, TId>.Save(TAggregate aggregate) -> void
+CSStack.DDD.Domain.ISingleValueObject<TSelf, TValue>
+CSStack.DDD.Domain.ISingleValueObject<TSelf, TValue>.Value.get -> TValue
+CSStack.DDD.Domain.IValidatable
+CSStack.DDD.Domain.IValidatable.Validate() -> System.Collections.Generic.IReadOnlyList<CSStack.DDD.Domain.ValidationError!>!
+CSStack.DDD.Domain.IValueObject<TSelf>
+CSStack.DDD.Domain.OutOfRange<T>
+CSStack.DDD.Domain.OutOfRange<T>.Actual.get -> T
+CSStack.DDD.Domain.OutOfRange<T>.Actual.init -> void
+CSStack.DDD.Domain.OutOfRange<T>.Deconstruct(out T Min, out T Max, out T Actual) -> void
+CSStack.DDD.Domain.OutOfRange<T>.Equals(CSStack.DDD.Domain.OutOfRange<T>? other) -> bool
+CSStack.DDD.Domain.OutOfRange<T>.Max.get -> T
+CSStack.DDD.Domain.OutOfRange<T>.Max.init -> void
+CSStack.DDD.Domain.OutOfRange<T>.Min.get -> T
+CSStack.DDD.Domain.OutOfRange<T>.Min.init -> void
+CSStack.DDD.Domain.OutOfRange<T>.OutOfRange(T Min, T Max, T Actual) -> void
+CSStack.DDD.Domain.Required
+CSStack.DDD.Domain.Required.Equals(CSStack.DDD.Domain.Required? other) -> bool
+CSStack.DDD.Domain.Required.Required() -> void
+CSStack.DDD.Domain.TooLong
+CSStack.DDD.Domain.TooLong.ActualLength.get -> int
+CSStack.DDD.Domain.TooLong.ActualLength.init -> void
+CSStack.DDD.Domain.TooLong.Deconstruct(out int MaxLength, out int ActualLength) -> void
+CSStack.DDD.Domain.TooLong.Equals(CSStack.DDD.Domain.TooLong? other) -> bool
+CSStack.DDD.Domain.TooLong.MaxLength.get -> int
+CSStack.DDD.Domain.TooLong.MaxLength.init -> void
+CSStack.DDD.Domain.TooLong.TooLong(int MaxLength, int ActualLength) -> void
+CSStack.DDD.Domain.TooShort
+CSStack.DDD.Domain.TooShort.ActualLength.get -> int
+CSStack.DDD.Domain.TooShort.ActualLength.init -> void
+CSStack.DDD.Domain.TooShort.Deconstruct(out int MinLength, out int ActualLength) -> void
+CSStack.DDD.Domain.TooShort.Equals(CSStack.DDD.Domain.TooShort? other) -> bool
+CSStack.DDD.Domain.TooShort.MinLength.get -> int
+CSStack.DDD.Domain.TooShort.MinLength.init -> void
+CSStack.DDD.Domain.TooShort.TooShort(int MinLength, int ActualLength) -> void
+CSStack.DDD.Domain.ValidationError
+CSStack.DDD.Domain.ValidationError.Path.get -> string!
+CSStack.DDD.Domain.ValidationError.Path.init -> void
+CSStack.DDD.Domain.ValidationError.ValidationError() -> void
+CSStack.DDD.Domain.ValidationError.ValidationError(CSStack.DDD.Domain.ValidationError! original) -> void
+CSStack.DDD.Domain.ValidationErrorExtensions
+override CSStack.DDD.Domain.InvalidFormat.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.InvalidFormat.GetHashCode() -> int
+override CSStack.DDD.Domain.InvalidFormat.ToString() -> string!
+override CSStack.DDD.Domain.OutOfRange<T>.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.OutOfRange<T>.GetHashCode() -> int
+override CSStack.DDD.Domain.OutOfRange<T>.ToString() -> string!
+override CSStack.DDD.Domain.Required.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.Required.GetHashCode() -> int
+override CSStack.DDD.Domain.Required.ToString() -> string!
+override CSStack.DDD.Domain.TooLong.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.TooLong.GetHashCode() -> int
+override CSStack.DDD.Domain.TooLong.ToString() -> string!
+override CSStack.DDD.Domain.TooShort.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.TooShort.GetHashCode() -> int
+override CSStack.DDD.Domain.TooShort.ToString() -> string!
+override CSStack.DDD.Domain.ValidationError.Equals(object? obj) -> bool
+override CSStack.DDD.Domain.ValidationError.GetHashCode() -> int
+override CSStack.DDD.Domain.ValidationError.ToString() -> string!
+override sealed CSStack.DDD.Domain.Entity<TSelf, TId>.Equals(object? obj) -> bool
+override sealed CSStack.DDD.Domain.Entity<TSelf, TId>.GetHashCode() -> int
+override sealed CSStack.DDD.Domain.InvalidFormat.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+override sealed CSStack.DDD.Domain.OutOfRange<T>.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+override sealed CSStack.DDD.Domain.Required.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+override sealed CSStack.DDD.Domain.TooLong.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+override sealed CSStack.DDD.Domain.TooShort.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+static CSStack.DDD.Domain.Entity<TSelf, TId>.operator !=(CSStack.DDD.Domain.Entity<TSelf!, TId>? left, CSStack.DDD.Domain.Entity<TSelf!, TId>? right) -> bool
+static CSStack.DDD.Domain.Entity<TSelf, TId>.operator ==(CSStack.DDD.Domain.Entity<TSelf!, TId>? left, CSStack.DDD.Domain.Entity<TSelf!, TId>? right) -> bool
+static CSStack.DDD.Domain.InvalidFormat.operator !=(CSStack.DDD.Domain.InvalidFormat? left, CSStack.DDD.Domain.InvalidFormat? right) -> bool
+static CSStack.DDD.Domain.InvalidFormat.operator ==(CSStack.DDD.Domain.InvalidFormat? left, CSStack.DDD.Domain.InvalidFormat? right) -> bool
+static CSStack.DDD.Domain.OutOfRange<T>.operator !=(CSStack.DDD.Domain.OutOfRange<T>? left, CSStack.DDD.Domain.OutOfRange<T>? right) -> bool
+static CSStack.DDD.Domain.OutOfRange<T>.operator ==(CSStack.DDD.Domain.OutOfRange<T>? left, CSStack.DDD.Domain.OutOfRange<T>? right) -> bool
+static CSStack.DDD.Domain.Required.operator !=(CSStack.DDD.Domain.Required? left, CSStack.DDD.Domain.Required? right) -> bool
+static CSStack.DDD.Domain.Required.operator ==(CSStack.DDD.Domain.Required? left, CSStack.DDD.Domain.Required? right) -> bool
+static CSStack.DDD.Domain.TooLong.operator !=(CSStack.DDD.Domain.TooLong? left, CSStack.DDD.Domain.TooLong? right) -> bool
+static CSStack.DDD.Domain.TooLong.operator ==(CSStack.DDD.Domain.TooLong? left, CSStack.DDD.Domain.TooLong? right) -> bool
+static CSStack.DDD.Domain.TooShort.operator !=(CSStack.DDD.Domain.TooShort? left, CSStack.DDD.Domain.TooShort? right) -> bool
+static CSStack.DDD.Domain.TooShort.operator ==(CSStack.DDD.Domain.TooShort? left, CSStack.DDD.Domain.TooShort? right) -> bool
+static CSStack.DDD.Domain.ValidationError.operator !=(CSStack.DDD.Domain.ValidationError? left, CSStack.DDD.Domain.ValidationError? right) -> bool
+static CSStack.DDD.Domain.ValidationError.operator ==(CSStack.DDD.Domain.ValidationError? left, CSStack.DDD.Domain.ValidationError? right) -> bool
+static CSStack.DDD.Domain.ValidationErrorExtensions.ThrowIfInvalid(this System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>! errors) -> void
+static CSStack.DDD.Domain.ValidationErrorExtensions.Under(this System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>! errors, string! name) -> System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>!
+virtual CSStack.DDD.Domain.ValidationError.EqualityContract.get -> System.Type!
+virtual CSStack.DDD.Domain.ValidationError.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+virtual CSStack.DDD.Domain.ValidationError.PrintMembers(System.Text.StringBuilder! builder) -> bool

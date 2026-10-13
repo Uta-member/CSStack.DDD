@@ -1,0 +1,6 @@
+#nullable enable
+override CSStack.DDD.Domain.InvalidFormat.<Clone>$() -> CSStack.DDD.Domain.InvalidFormat!
+override CSStack.DDD.Domain.OutOfRange<T>.<Clone>$() -> CSStack.DDD.Domain.OutOfRange<T>!
+override CSStack.DDD.Domain.Required.<Clone>$() -> CSStack.DDD.Domain.Required!
+override CSStack.DDD.Domain.TooLong.<Clone>$() -> CSStack.DDD.Domain.TooLong!
+override CSStack.DDD.Domain.TooShort.<Clone>$() -> CSStack.DDD.Domain.TooShort!

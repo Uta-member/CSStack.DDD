@@ -1,0 +1,4 @@
+#nullable enable
+override CSStack.DDD.Domain.AboveMaximum.<Clone>$() -> CSStack.DDD.Domain.AboveMaximum!
+override CSStack.DDD.Domain.BelowMinimum.<Clone>$() -> CSStack.DDD.Domain.BelowMinimum!
+*REMOVED*override CSStack.DDD.Domain.OutOfRange<T>.<Clone>$() -> CSStack.DDD.Domain.OutOfRange<T>!
