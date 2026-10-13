@@ -171,7 +171,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid(); // 在创建之前校验
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -181,7 +181,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		Email = email;
-		AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
+		AddDomainEvent(new MemberEmailChanged(occurredAt, Id, email));
 	}
 }
 ```

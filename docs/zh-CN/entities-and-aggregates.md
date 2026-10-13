@@ -77,7 +77,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		errors.ThrowIfInvalid();
 
 		var member = new Member(MemberId.New(), name, email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -100,7 +100,7 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid(); // 关卡
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
+	AddDomainEvent(new MemberEmailChanged(occurredAt, Id, email));
 }
 ```
 
@@ -135,7 +135,7 @@ public void Approve(UserId approver, DateTimeOffset occurredAt)
 		throw new ApprovalRuleException("The requester cannot approve their own request.");
 	}
 	ApprovedBy = approver;
-	AddDomainEvent(new OrderApproved(Guid.NewGuid(), occurredAt, Id, approver));
+	AddDomainEvent(new OrderApproved(occurredAt, Id, approver));
 }
 ```
 

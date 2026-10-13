@@ -11,7 +11,7 @@ CSStack.DDD provides interfaces and base classes for value objects, entities, ag
 - **Value objects** with equality by attributes (`IValueObject`, `ISingleValueObject`)
 - **Entities** with equality by identifier, enforced by a base class (`IEntity`, `Entity`)
 - **Aggregate roots** that record domain events (`IAggregateRoot`, `AggregateRoot`)
-- **Domain events** collected by the infrastructure on commit, ready for the outbox pattern (`IDomainEvent`, `IDomainEventSource`)
+- **Domain events** collected by the infrastructure on commit, ready for the outbox pattern (`IDomainEvent`, `DomainEvent`, `IDomainEventSource`)
 - **Validation** with typed errors and member paths such as `Address.PostalCode` (`IValidatable`, `ValidationError`)
 - **Repositories** and a **unit of work** that keep transactions out of the domain (`IRepository`, `IDeletableRepository`, `IUnitOfWork`)
 
@@ -51,6 +51,9 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 	}
 }
 
+// A domain event with an automatically generated EventId
+public sealed record MemberRegistered(DateTimeOffset OccurredAt, MemberId MemberId, Email Email) : DomainEvent(OccurredAt);
+
 // An aggregate root
 public sealed class Member : AggregateRoot<Member, MemberId>
 {
@@ -68,7 +71,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(occurredAt, member.Id, email));
 		return member;
 	}
 

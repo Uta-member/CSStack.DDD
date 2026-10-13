@@ -2,3 +2,4 @@
 override CSStack.DDD.Domain.AboveMaximum.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 override CSStack.DDD.Domain.BelowMinimum.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 *REMOVED*override CSStack.DDD.Domain.OutOfRange<T>.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
+abstract CSStack.DDD.Domain.DomainEvent.<Clone>$() -> CSStack.DDD.Domain.DomainEvent!
