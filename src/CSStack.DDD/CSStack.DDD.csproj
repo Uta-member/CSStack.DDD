@@ -9,12 +9,18 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- Enables the trimming and Native AOT analyzers and marks the assembly as trimmable. Not available for netstandard2.0. -->
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    <!-- Strong-named so that strong-named .NET Framework assemblies can reference it. The key is public on purpose, as the .NET library guidance recommends. -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>CSStack.DDD.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>CSStack.DDD</PackageId>
     <!-- The release workflow passes the version from the Git tag (-p:Version=...). This value is used only for local builds. -->
     <Version>0.0.0-local</Version>
+    <!-- Only the major version, so that .NET Framework applications need no binding redirects when they update within a major version. FileVersion and InformationalVersion keep the full version. -->
+    <AssemblyVersion>$(Version.Split('.')[0]).0.0.0</AssemblyVersion>
+    <FileVersion>$(Version.Split('-')[0])</FileVersion>
     <Title>CSStack.DDD</Title>
     <Authors>Uta Sugane</Authors>
     <Copyright>Copyright (c) 2026 Uta Sugane</Copyright>
@@ -26,6 +32,7 @@
 - Breaking change: replaces OutOfRange&lt;T&gt; with BelowMinimum(decimal Minimum, decimal Actual) and AboveMaximum(decimal Maximum, decimal Actual). The new errors are not generic, so they can be matched and serialized without knowing a type argument, and a rule with only one bound can be represented. Use them for numbers; TooLong and TooShort remain for length. For other kinds of values, such as dates, define your own error.
 - Breaking change: AggregateRoot&lt;TSelf, TId&gt; now implements PullDomainEvents() explicitly, so it can be called only through IDomainEventSource. If application services or domain code pulled the events, they would be cleared and not written to the outbox on commit. DomainEvents remains public for checking the recorded events, for example in tests.
 - Breaking change: IAggregateRoot&lt;TSelf, TId&gt;, IRepository&lt;TAggregate, TId&gt; and IDeletableRepository&lt;TAggregate, TId&gt; now require the aggregate to be a class. A struct would be copied on every assignment and lose the events recorded on the copy, and the null returned by FindAsync had no meaning for a struct. Aggregates that derive from AggregateRoot&lt;TSelf, TId&gt; are not affected.
+- The assembly is now strong-named (public key token 9f050175924426b8), so that strong-named .NET Framework assemblies can reference it. The assembly version now contains only the major version (0.0.0.0 while the version is 0.x), so .NET Framework applications need no binding redirects when they update within a major version. The file version and the informational version keep the full version.
 
 Documentation: https://github.com/Uta-member/CSStack.DDD/tree/master/docs/en</PackageReleaseNotes>
     <PackageIcon>CSStack.png</PackageIcon>
