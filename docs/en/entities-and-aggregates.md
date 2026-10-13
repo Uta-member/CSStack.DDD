@@ -105,7 +105,18 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 ```
 
 - **Prefer intent over overwriting.** An operation such as `UpdateMember(name, email, address, ...)` that overwrites every field can silently discard changes made by others. Operations such as `ChangeEmail` touch only what they mean to change.
-- **Business rules that are not about the input** (for example, "a withdrawn member cannot change the email address") are also checked in the operation. Throw your own exception for them.
+- **Business rules that are not about the input** (for example, "a withdrawn member cannot change the email address") are also checked in the operation. Throw your own exception derived from `DomainException` for them.
+
+```csharp
+public sealed class MembershipRuleException : DomainException
+{
+	public MembershipRuleException(string message) : base(message)
+	{
+	}
+}
+```
+
+`DomainValidationException` also derives from `DomainException`, so the presentation layer can handle every operation rejected by the domain in one place. See [Validation](validation.md#aspnet-core-example).
 
 ## Who performed an operation
 

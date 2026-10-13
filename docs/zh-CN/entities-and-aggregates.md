@@ -105,7 +105,18 @@ public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 ```
 
 - **用意图表达变更，而不是整体覆盖。** 像 `UpdateMember(name, email, address, ...)` 这样覆盖所有字段的操作，可能会悄无声息地丢弃他人所做的修改。而 `ChangeEmail` 这样的操作只会改动它本来要改的部分。
-- **与输入无关的业务规则**（例如“已退会的会员不能更改电子邮件地址”）同样在操作中检查。对于这类规则，请抛出自定义异常。
+- **与输入无关的业务规则**（例如“已退会的会员不能更改电子邮件地址”）同样在操作中检查。对于这类规则，请抛出派生自 `DomainException` 的自定义异常。
+
+```csharp
+public sealed class MembershipRuleException : DomainException
+{
+	public MembershipRuleException(string message) : base(message)
+	{
+	}
+}
+```
+
+`DomainValidationException` 同样派生自 `DomainException`，因此表示层可以在一处统一处理所有被领域拒绝的操作。请参阅[校验](validation.md#aspnet-core-示例)。
 
 ## 操作的执行者
 

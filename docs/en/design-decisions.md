@@ -22,6 +22,12 @@ This page explains why CSStack.DDD is designed the way it is.
 
 **Why:** Diagnosis needs to collect all errors, which exceptions cannot do. Enforcement needs to be impossible to ignore, which return values cannot guarantee. Neither mechanism alone satisfies both needs. Because enforcement happens only in operations of entities, missing enforcement is a bug in the behavior of an operation and can be found by its tests.
 
+## Exceptions of the domain share a base class
+
+**Decision:** `DomainValidationException` derives from the abstract class `DomainException`. Exceptions for business rules that are not about the input, such as "the requester cannot approve their own request", are defined by the application and also derive from `DomainException`. `ConcurrencyConflictException` does not derive from it.
+
+**Why:** The upper layers need to handle every operation rejected by the domain in one place, for example by turning it into HTTP 400 or 422. Without a common base, each new exception would have to be added to that handling. Business rules that are not about the input are not reported as validation errors because there is no input to point to. `DomainException` is abstract so that each rule is represented by its own type, not by a message. A concurrency conflict is detected by the infrastructure, not rejected by a rule of the domain, so `ConcurrencyConflictException` is in the application layer.
+
 ## Errors are typed records, not codes
 
 **Decision:** Each kind of error is a type derived from `ValidationError`, with typed properties.

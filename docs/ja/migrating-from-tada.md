@@ -49,7 +49,7 @@ CSStack.DDD は CSStack.TADA の後継です。このガイドでは、TADA を�
 | `ICommandService<...>`、`ICommandServiceDTO`、`IQueryService<...>`、`IQueryServiceDTO` | なし | 各インターフェースに `ExecuteAsync` を宣言する |
 | `Optional<T>`、`OptionalExtensions` | なし | 手順 5 を参照 |
 | `TADAException`、`NestedTransactionException`、`TransactionSessionNotFoundException` | なし | |
-| なし | `ValidationError`、`Required`、`InvalidFormat`、`TooLong`、`TooShort`、`OutOfRange<T>`、`DomainValidationException` | |
+| なし | `ValidationError`、`Required`、`InvalidFormat`、`TooLong`、`TooShort`、`OutOfRange<T>`、`DomainException`、`DomainValidationException` | |
 | なし | `ConcurrencyConflictException` | |
 
 ## 手順 1：パッケージを差し替える
@@ -406,11 +406,11 @@ public interface IChangeMemberEmailCommandService
 |---|---|
 | `Validate()` や `Create` がスローする例外 | `DomainValidationException`。`Errors` にパス付きの型付きエラーが入る |
 | `ValueObjectNullException`、`ValueObjectLengthException`、`ValueObjectInvalidException`（3.x まで） | `Validate()` が報告する `Required`、`TooShort`/`TooLong`、`InvalidFormat` |
-| `ObjectNotFoundException`、`ObjectAlreadyExistException`、`DomainInvalidOperationException`（3.x まで） | 独自の例外 |
+| `ObjectNotFoundException`、`ObjectAlreadyExistException`、`DomainInvalidOperationException`（3.x まで） | 独自の例外。ビジネスルールの例外は `DomainException` から派生させる |
 | `NestedTransactionException`、`TransactionSessionNotFoundException` | なし |
 | なし | `ConcurrencyConflictException` |
 
-`DomainValidationException` と `ConcurrencyConflictException` は、プレゼンテーション層で 1 か所にまとめて処理します。エラーはメッセージを持たないので、メッセージへの変換もそこで行います。[エラーをメッセージに変換する](validation.md#エラーをメッセージに変換する)を参照してください。
+`DomainException`（`DomainValidationException` を含む）と `ConcurrencyConflictException` は、プレゼンテーション層で 1 か所にまとめて処理します。エラーはメッセージを持たないので、メッセージへの変換もそこで行います。[エラーをメッセージに変換する](validation.md#エラーをメッセージに変換する)を参照してください。
 
 ## コンパイルは通るが振る舞いが変わること
 
@@ -449,4 +449,4 @@ public interface IChangeMemberEmailCommandService
 - [ ] 監査列は、インフラストラクチャが実行コンテキストから記録している。
 - [ ] リポジトリは、upsert 文を使わずに、読み込んだかどうかで挿入か更新かを判断している。
 - [ ] Unit of Work とリポジトリをスコープで登録している。
-- [ ] `DomainValidationException` と `ConcurrencyConflictException` を、プレゼンテーション層で処理している。
+- [ ] `DomainException`（`DomainValidationException` を含む）と `ConcurrencyConflictException` を、プレゼンテーション層で処理している。

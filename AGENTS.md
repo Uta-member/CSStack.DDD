@@ -17,6 +17,7 @@ CSStack.DDD.slnx                 ソリューション
 src/CSStack.DDD/
   CSStack.DDD.csproj             パッケージ情報とリリースノートもここにある
   Domain/                        名前空間 CSStack.DDD.Domain
+    DomainException.cs           ドメインが操作を拒否したときの例外の基底クラス
     ValueObject/                 IValueObject, ISingleValueObject
     Entity/                      IEntity, Entity, IAggregateRoot, AggregateRoot
     DomainEvent/                 IDomainEvent, IDomainEventSource

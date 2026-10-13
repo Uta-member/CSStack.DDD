@@ -150,6 +150,7 @@ The toolkit uses these exceptions. Handle them once, globally, in the presentati
 | Exception | Meaning | Typical HTTP status |
 |---|---|---|
 | `DomainValidationException` | The input of an operation violates the rules. `Errors` contains all violations. | 400 |
+| Other types derived from `DomainException` | A business rule that is not about the input rejected an operation. Define them in your domain. | 422 |
 | `ConcurrencyConflictException` | Another transaction modified the aggregate first. | 409 |
 
 See [Validation](validation.md) for an ASP.NET Core example.

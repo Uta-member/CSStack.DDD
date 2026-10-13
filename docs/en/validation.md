@@ -99,6 +99,8 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 
 Both are enforced by the operations, not on reconstruction, so data stored under older rules can always be loaded.
 
+Rules that are not about the input, such as "a withdrawn member cannot change the email address", are not reported as validation errors, because there is no input to point to. Throw your own exception derived from `DomainException` for them. See [Operations](entities-and-aggregates.md#operations).
+
 ## Turning errors into messages
 
 Errors do not contain messages. Compose messages once, in the presentation layer.
@@ -121,30 +123,39 @@ The compiler does not check that a `switch` over a class hierarchy covers every 
 
 ## ASP.NET Core example
 
-Handle `DomainValidationException` once, globally. Controllers and use cases then need no error handling code.
+Handle `DomainException` once, globally. Controllers and use cases then need no error handling code. Check `DomainValidationException` first, because it is also a `DomainException`.
 
 ```csharp
-public sealed class DomainValidationExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
+public sealed class DomainExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
 {
 	public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
 	{
-		if (exception is not DomainValidationException validation)
+		if (exception is DomainValidationException validation)
 		{
-			return false;
+			var errors = validation.Errors
+				.GroupBy(e => e.Path)
+				.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+
+			context.Response.StatusCode = StatusCodes.Status400BadRequest;
+			await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
+			return true;
 		}
 
-		var errors = validation.Errors
-			.GroupBy(e => e.Path)
-			.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+		if (exception is DomainException rejected)
+		{
+			context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+			await context.Response.WriteAsJsonAsync(new ProblemDetails { Detail = rejected.Message }, cancellationToken);
+			return true;
+		}
 
-		context.Response.StatusCode = StatusCodes.Status400BadRequest;
-		await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
-		return true;
+		return false;
 	}
 }
 ```
 
 The paths have the same shape as the keys of ASP.NET Core `ModelState`, so a client can map them to input fields.
+
+Other `DomainException`s are rejections by business rules that are not about the input, so they have no paths. If their messages are shown to users and need to be localized, map the type of the exception to a message, as with validation errors.
 
 ## Validating input with the names of your form
 

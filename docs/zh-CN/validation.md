@@ -99,6 +99,8 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 
 两者都由操作来强制执行，而不在重建时执行，因此按旧规则保存的数据始终可以加载。
 
+像“已退会的会员不能更改电子邮件地址”这样与输入无关的规则，没有可指向的输入，因此不作为校验错误报告。对于这类规则，请抛出派生自 `DomainException` 的自定义异常。请参阅[操作](entities-and-aggregates.md#操作)。
+
 ## 将错误转换为消息
 
 错误本身不包含消息。请在表示层中统一组装消息。
@@ -121,30 +123,39 @@ public sealed class ValidationMessageFormatter
 
 ## ASP.NET Core 示例
 
-在全局统一处理一次 `DomainValidationException`。这样控制器和用例中就不再需要错误处理代码。
+在全局统一处理一次 `DomainException`。这样控制器和用例中就不再需要错误处理代码。`DomainValidationException` 也是 `DomainException`，因此要先判断它。
 
 ```csharp
-public sealed class DomainValidationExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
+public sealed class DomainExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
 {
 	public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
 	{
-		if (exception is not DomainValidationException validation)
+		if (exception is DomainValidationException validation)
 		{
-			return false;
+			var errors = validation.Errors
+				.GroupBy(e => e.Path)
+				.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+
+			context.Response.StatusCode = StatusCodes.Status400BadRequest;
+			await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
+			return true;
 		}
 
-		var errors = validation.Errors
-			.GroupBy(e => e.Path)
-			.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+		if (exception is DomainException rejected)
+		{
+			context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+			await context.Response.WriteAsJsonAsync(new ProblemDetails { Detail = rejected.Message }, cancellationToken);
+			return true;
+		}
 
-		context.Response.StatusCode = StatusCodes.Status400BadRequest;
-		await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
-		return true;
+		return false;
 	}
 }
 ```
 
 路径的形式与 ASP.NET Core `ModelState` 的键相同，因此客户端可以将其映射到对应的输入字段。
+
+其他的 `DomainException` 表示被与输入无关的业务规则拒绝，因此不带路径。如果要向用户显示其消息并需要本地化，请像处理校验错误一样，将异常的类型转换为消息。
 
 ## 使用表单中的名称校验输入
 

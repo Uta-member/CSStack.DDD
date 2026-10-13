@@ -49,7 +49,7 @@ The guide is written against TADA 4.0.0. If you use an older version, read [Migr
 | `ICommandService<...>`, `ICommandServiceDTO`, `IQueryService<...>`, `IQueryServiceDTO` | None | Declare `ExecuteAsync` in your own interfaces |
 | `Optional<T>`, `OptionalExtensions` | None | See [Partial updates without `Optional<T>`](#step-5-partial-updates-without-optionalt) |
 | `TADAException`, `NestedTransactionException`, `TransactionSessionNotFoundException` | None | |
-| None | `ValidationError`, `Required`, `InvalidFormat`, `TooLong`, `TooShort`, `OutOfRange<T>`, `DomainValidationException` | |
+| None | `ValidationError`, `Required`, `InvalidFormat`, `TooLong`, `TooShort`, `OutOfRange<T>`, `DomainException`, `DomainValidationException` | |
 | None | `ConcurrencyConflictException` | |
 
 ## Step 1: Replace the package
@@ -406,11 +406,11 @@ If your code relied on the common interfaces (for example, as generic constraint
 |---|---|
 | Exceptions thrown by `Validate()` or `Create` | `DomainValidationException`, whose `Errors` contain typed errors with paths |
 | `ValueObjectNullException`, `ValueObjectLengthException`, `ValueObjectInvalidException` (up to 3.x) | `Required`, `TooShort`/`TooLong`, `InvalidFormat`, reported by `Validate()` |
-| `ObjectNotFoundException`, `ObjectAlreadyExistException`, `DomainInvalidOperationException` (up to 3.x) | Your own exceptions |
+| `ObjectNotFoundException`, `ObjectAlreadyExistException`, `DomainInvalidOperationException` (up to 3.x) | Your own exceptions. Derive the exceptions for business rules from `DomainException` |
 | `NestedTransactionException`, `TransactionSessionNotFoundException` | None |
 | None | `ConcurrencyConflictException` |
 
-Handle `DomainValidationException` and `ConcurrencyConflictException` once, in the presentation layer. Errors do not contain messages, so turn them into messages there. See [Validation](validation.md#turning-errors-into-messages).
+Handle `DomainException` (including `DomainValidationException`) and `ConcurrencyConflictException` once, in the presentation layer. Errors do not contain messages, so turn them into messages there. See [Validation](validation.md#turning-errors-into-messages).
 
 ## Changes that compile but behave differently
 
@@ -449,4 +449,4 @@ Find the rows that include your version.
 - [ ] Audit columns are filled by the infrastructure from an execution context.
 - [ ] Repositories decide insert or update from what they loaded, without upsert statements.
 - [ ] The unit of work and the repositories are registered as scoped.
-- [ ] `DomainValidationException` and `ConcurrencyConflictException` are handled in the presentation layer.
+- [ ] `DomainException` (including `DomainValidationException`) and `ConcurrencyConflictException` are handled in the presentation layer.
