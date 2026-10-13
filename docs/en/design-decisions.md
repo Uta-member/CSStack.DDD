@@ -28,6 +28,12 @@ This page explains why CSStack.DDD is designed the way it is.
 
 **Why:** The upper layers need to handle every operation rejected by the domain in one place, for example by turning it into HTTP 400 or 422. Without a common base, each new exception would have to be added to that handling. Business rules that are not about the input are not reported as validation errors because there is no input to point to. `DomainException` is abstract so that each rule is represented by its own type, not by a message. A concurrency conflict is detected by the infrastructure, not rejected by a rule of the domain, so `ConcurrencyConflictException` is in the application layer.
 
+## A missing aggregate is an error of the use case
+
+**Decision:** `FindAsync` returns `null` if the aggregate does not exist. The extension method `GetAsync` in the application layer throws `AggregateNotFoundException` instead. `AggregateNotFoundException` does not derive from `DomainException`.
+
+**Why:** Whether a missing aggregate is an error depends on the caller. A domain service that checks whether an email address is in use expects `null`, but a use case that operates on an aggregate specified by the caller cannot continue. Without a common exception, each application throws its own, such as `KeyNotFoundException`, and the upper layers cannot turn them into HTTP 404 in one place. A missing aggregate is not an operation rejected by a rule of the domain, so it is not a `DomainException`, which is turned into 400 or 422. `GetAsync` is an extension method so that implementations of repositories do not have to implement it.
+
 ## Errors are typed records, not codes
 
 **Decision:** Each kind of error is a type derived from `ValidationError`, with typed properties.

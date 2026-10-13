@@ -7,6 +7,8 @@
 | `IRepository<TAggregate, TId>` | Domain | Finds aggregates and registers them to be saved. |
 | `IDeletableRepository<TAggregate, TId>` | Domain | Also registers aggregates to be deleted. |
 | `IUnitOfWork` | Application | Commits all registered changes in a single transaction. |
+| `GetAsync` (extension method of `IRepository`) | Application | Gets an aggregate that is expected to exist, and throws `AggregateNotFoundException` if it does not. |
+| `AggregateNotFoundException` | Application | Reports that the aggregate requested by a use case does not exist. |
 | `ConcurrencyConflictException` | Application | Reports that another transaction modified an aggregate first. |
 
 The domain does not know about transactions. A transaction is the boundary of a use case, which is a concern of the application layer.
@@ -27,6 +29,7 @@ public interface IDeletableRepository<TAggregate, TId> : IRepository<TAggregate,
 ```
 
 - `FindAsync` returns `null` if the aggregate does not exist, following the .NET convention for `Find`.
+- In use cases, use the extension method `GetAsync` (in `CSStack.DDD.Application`) when the aggregate is expected to exist. It throws `AggregateNotFoundException` instead of returning `null`. Use `FindAsync` when a missing aggregate is a normal result.
 - `Save` and `Delete` **only register** the aggregate. Nothing is written until `IUnitOfWork.CommitAsync` is called. This is why they are synchronous.
 - `Save` does not distinguish between insert and update. The implementation decides (see below).
 
@@ -57,8 +60,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);
@@ -67,6 +69,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 }
 ```
 
+- If the member does not exist, `GetAsync` throws `AggregateNotFoundException`. Handle it once in the presentation layer, for example by returning HTTP 404.
 - Repositories and the unit of work share the same connection within a DI scope (one per request).
 - There is no rollback method. If the unit of work is disposed without being committed, the changes are discarded.
 - Domain services do not commit. They operate on the aggregates they receive, and the application service loads, saves and commits.

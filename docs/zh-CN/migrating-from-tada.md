@@ -50,7 +50,7 @@ CSStack.DDD 是 CSStack.TADA 的后继。本指南介绍如何将使用 TADA 的
 | `Optional<T>`、`OptionalExtensions` | 无 | 参阅第 5 步 |
 | `TADAException`、`NestedTransactionException`、`TransactionSessionNotFoundException` | 无 | |
 | 无 | `ValidationError`、`Required`、`InvalidFormat`、`TooLong`、`TooShort`、`BelowMinimum`、`AboveMaximum`、`DomainException`、`DomainValidationException` | |
-| 无 | `ConcurrencyConflictException` | |
+| 无 | `GetAsync`（`IRepository` 的扩展方法）、`AggregateNotFoundException`、`ConcurrencyConflictException` | |
 
 ## 第 1 步：替换包
 
@@ -311,8 +311,7 @@ public sealed class ChangeMemberEmailCommandService(
 {
 	public async ValueTask ExecuteAsync(IChangeMemberEmailCommandService.Req req, CancellationToken cancellationToken = default)
 	{
-		var member = await members.FindAsync(req.MemberId, cancellationToken)
-			?? throw new MemberNotFoundException(req.MemberId);
+		var member = await members.GetAsync(req.MemberId, cancellationToken);
 
 		member.ChangeEmail(new Email(req.Email), req.OccurredAt);
 		members.Save(member);
@@ -406,11 +405,12 @@ public interface IChangeMemberEmailCommandService
 |---|---|
 | `Validate()` 或 `Create` 抛出的异常 | `DomainValidationException`，其 `Errors` 包含带路径的强类型错误 |
 | `ValueObjectNullException`、`ValueObjectLengthException`、`ValueObjectInvalidException`（3.x 及之前） | 由 `Validate()` 报告的 `Required`、`TooShort`/`TooLong`、`InvalidFormat` |
-| `ObjectNotFoundException`、`ObjectAlreadyExistException`、`DomainInvalidOperationException`（3.x 及之前） | 你自己的异常。业务规则的异常派生自 `DomainException` |
+| `ObjectNotFoundException`（3.x 及之前） | 由 `GetAsync` 抛出的 `AggregateNotFoundException` |
+| `ObjectAlreadyExistException`、`DomainInvalidOperationException`（3.x 及之前） | 你自己的异常。业务规则的异常派生自 `DomainException` |
 | `NestedTransactionException`、`TransactionSessionNotFoundException` | 无 |
 | 无 | `ConcurrencyConflictException` |
 
-在表示层统一处理一次 `DomainException`（包括 `DomainValidationException`）和 `ConcurrencyConflictException`。错误不包含消息，因此也在那里将其转换为消息。请参阅[将错误转换为消息](validation.md#将错误转换为消息)。
+在表示层统一处理一次 `DomainException`（包括 `DomainValidationException`）、`AggregateNotFoundException` 和 `ConcurrencyConflictException`。错误不包含消息，因此也在那里将其转换为消息。请参阅[将错误转换为消息](validation.md#将错误转换为消息)。
 
 ## 能够编译但行为不同的变化
 
@@ -449,4 +449,4 @@ public interface IChangeMemberEmailCommandService
 - [ ] 审计列由基础设施层根据执行上下文填写。
 - [ ] 仓储根据是否加载过来决定插入还是更新，不使用 upsert 语句。
 - [ ] 工作单元和仓储注册为作用域生命周期。
-- [ ] 在表示层处理 `DomainException`（包括 `DomainValidationException`）和 `ConcurrencyConflictException`。
+- [ ] 在表示层处理 `DomainException`（包括 `DomainValidationException`）、`AggregateNotFoundException` 和 `ConcurrencyConflictException`。

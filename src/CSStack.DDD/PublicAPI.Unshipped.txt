@@ -1,4 +1,9 @@
 #nullable enable
+CSStack.DDD.Application.AggregateNotFoundException
+CSStack.DDD.Application.AggregateNotFoundException.AggregateId.get -> object!
+CSStack.DDD.Application.AggregateNotFoundException.AggregateNotFoundException(System.Type! aggregateType, object! aggregateId) -> void
+CSStack.DDD.Application.AggregateNotFoundException.AggregateType.get -> System.Type!
+CSStack.DDD.Application.RepositoryExtensions
 CSStack.DDD.Domain.AboveMaximum
 CSStack.DDD.Domain.AboveMaximum.AboveMaximum(decimal Maximum, decimal Actual) -> void
 CSStack.DDD.Domain.AboveMaximum.Actual.get -> decimal
@@ -40,6 +45,7 @@ override CSStack.DDD.Domain.BelowMinimum.ToString() -> string!
 override sealed CSStack.DDD.Domain.AboveMaximum.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
 override sealed CSStack.DDD.Domain.BelowMinimum.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
 *REMOVED*override sealed CSStack.DDD.Domain.OutOfRange<T>.Equals(CSStack.DDD.Domain.ValidationError? other) -> bool
+static CSStack.DDD.Application.RepositoryExtensions.GetAsync<TAggregate, TId>(this CSStack.DDD.Domain.IRepository<TAggregate!, TId>! repository, TId id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TAggregate!>!
 static CSStack.DDD.Domain.AboveMaximum.operator !=(CSStack.DDD.Domain.AboveMaximum? left, CSStack.DDD.Domain.AboveMaximum? right) -> bool
 static CSStack.DDD.Domain.AboveMaximum.operator ==(CSStack.DDD.Domain.AboveMaximum? left, CSStack.DDD.Domain.AboveMaximum? right) -> bool
 static CSStack.DDD.Domain.BelowMinimum.operator !=(CSStack.DDD.Domain.BelowMinimum? left, CSStack.DDD.Domain.BelowMinimum? right) -> bool

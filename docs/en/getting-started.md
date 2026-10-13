@@ -131,8 +131,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email));
 		members.Save(member);
@@ -140,6 +139,8 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 	}
 }
 ```
+
+`GetAsync` is an extension method in `CSStack.DDD.Application`. It throws `AggregateNotFoundException` if the member does not exist. Use `FindAsync` instead when a missing aggregate is a normal result.
 
 `Save` only registers the aggregate. `CommitAsync` writes all registered aggregates and their domain events in a single transaction (the events are written to the outbox). After the commit, the outbox publisher reacts to the events in a separate transaction.
 
@@ -151,6 +152,7 @@ The toolkit uses these exceptions. Handle them once, globally, in the presentati
 |---|---|---|
 | `DomainValidationException` | The input of an operation violates the rules. `Errors` contains all violations. | 400 |
 | Other types derived from `DomainException` | A business rule that is not about the input rejected an operation. Define them in your domain. | 422 |
+| `AggregateNotFoundException` | The aggregate requested by a use case does not exist. Thrown by `GetAsync`. | 404 |
 | `ConcurrencyConflictException` | Another transaction modified the aggregate first. | 409 |
 
 See [Validation](validation.md) for an ASP.NET Core example.

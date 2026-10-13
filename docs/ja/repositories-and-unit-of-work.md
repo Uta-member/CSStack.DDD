@@ -7,6 +7,8 @@
 | `IRepository<TAggregate, TId>` | ドメイン層 | 集約を検索し、保存対象として登録します。 |
 | `IDeletableRepository<TAggregate, TId>` | ドメイン層 | 加えて、集約を削除対象として登録します。 |
 | `IUnitOfWork` | アプリケーション層 | 登録されたすべての変更を 1 つのトランザクションでコミットします。 |
+| `GetAsync`（`IRepository` の拡張メソッド） | アプリケーション層 | 存在するはずの集約を取得し、存在しない場合は `AggregateNotFoundException` をスローします。 |
+| `AggregateNotFoundException` | アプリケーション層 | ユースケースが求めた集約が存在しないことを通知します。 |
 | `ConcurrencyConflictException` | アプリケーション層 | 別のトランザクションが先に集約を変更したことを通知します。 |
 
 ドメインはトランザクションについて知りません。トランザクションはユースケースの境界であり、アプリケーション層の関心事です。
@@ -27,6 +29,7 @@ public interface IDeletableRepository<TAggregate, TId> : IRepository<TAggregate,
 ```
 
 - `FindAsync` は、.NET の `Find` の慣例に従い、集約が存在しない場合は `null` を返します。
+- ユースケースで、集約が存在するはずの場合は拡張メソッド `GetAsync`（`CSStack.DDD.Application`）を使います。`null` を返す代わりに `AggregateNotFoundException` をスローします。集約が存在しないことが通常の結果である場合は `FindAsync` を使います。
 - `Save` と `Delete` は集約を**登録するだけ**です。`IUnitOfWork.CommitAsync` が呼ばれるまで何も書き込まれません。そのため、これらは同期メソッドになっています。
 - `Save` は挿入と更新を区別しません。どちらにするかは実装が決めます（後述）。
 
@@ -57,8 +60,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);
@@ -67,6 +69,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 }
 ```
 
+- 会員が存在しない場合、`GetAsync` は `AggregateNotFoundException` をスローします。プレゼンテーション層で 1 か所にまとめて処理します（たとえば HTTP 404 を返す）。
 - リポジトリと Unit of Work は、DI スコープ（リクエストごとに 1 つ）内で同じ接続を共有します。
 - ロールバック用のメソッドはありません。Unit of Work がコミットされずに破棄されると、変更は破棄されます。
 - ドメインサービスはコミットしません。受け取った集約を操作するだけで、読み込み・保存・コミットはアプリケーションサービスが行います。
