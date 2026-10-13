@@ -6,7 +6,7 @@
 
 | 型 | 用途 |
 |---|---|
-| `IEntity<TSelf, TId>` | エンティティ。`Id`、`IEquatable<TSelf>`、`==`・`!=` 演算子の実装が必要です。 |
+| `IEntity<TSelf, TId>` | エンティティ。`Id` と `IEquatable<TSelf>` の実装が必要です。`Entity<TSelf, TId>` を継承すると `==`・`!=` 演算子も得られます。 |
 | `Entity<TSelf, TId>` | 識別子による等価性を実装した基底クラス。 |
 
 ### 識別子による等価性
@@ -63,7 +63,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// 生成：入力を検証し、ビジネスポリシーを適用して、イベントを発行する
-	public static Member Register(MemberName name, Email email, TimeProvider time)
+	public static Member Register(MemberName name, Email email, DateTimeOffset occurredAt)
 	{
 		List<ValidationError> errors =
 		[
@@ -77,7 +77,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		errors.ThrowIfInvalid();
 
 		var member = new Member(MemberId.New(), name, email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -96,11 +96,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 状態の変更は、セッターではなく、業務上の意図に沿った名前の操作を通じて行います。
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid(); // ゲート
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 
@@ -117,14 +117,14 @@ public void ChangeEmail(Email email, TimeProvider time)
 | 監査のために記録する「誰が」 | 最終更新者、作成者 | インフラストラクチャ。コミット時に実行コンテキストから記録します。 |
 
 ```csharp
-public void Approve(UserId approver, TimeProvider time)
+public void Approve(UserId approver, DateTimeOffset occurredAt)
 {
 	if (approver == RequestedBy)
 	{
 		throw new ApprovalRuleException("The requester cannot approve their own request.");
 	}
 	ApprovedBy = approver;
-	AddDomainEvent(new OrderApproved(Guid.NewGuid(), time.GetUtcNow(), Id, approver));
+	AddDomainEvent(new OrderApproved(Guid.NewGuid(), occurredAt, Id, approver));
 }
 ```
 

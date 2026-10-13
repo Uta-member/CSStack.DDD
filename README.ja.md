@@ -17,7 +17,8 @@ CSStack.DDD は、値オブジェクト、エンティティ、集約ルート�
 
 ## 動作要件
 
-- .NET 10 以降
+- .NET Standard 2.0 以降に対応した環境（.NET 8 以降、.NET Framework 4.7.2 以降など）
+- 値オブジェクトを record で実装する場合は C# 9 以降（[詳細](docs/ja/getting-started.md#インストール)）
 
 ## インストール
 
@@ -38,14 +39,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // 型が存在するための最低限の条件だけを確認する
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // 型が存在するための最低限の条件だけを確認する
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -63,11 +63,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// 生成：入力を検証し、イベントを発行する
-	public static Member Register(Email email, TimeProvider time)
+	public static Member Register(Email email, DateTimeOffset occurredAt)
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -76,11 +76,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 }
 
 // アプリケーション層のユースケース
-public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork, TimeProvider time)
+public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork)
 {
 	public async Task<MemberId> ExecuteAsync(string email, CancellationToken cancellationToken)
 	{
-		var member = Member.Register(new Email(email), time);
+		var member = Member.Register(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);                         // 登録するだけ
 		await unitOfWork.CommitAsync(cancellationToken); // 集約とそのイベントを 1 つのトランザクションで書き込む
 		return member.Id;
@@ -106,3 +106,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 |---|---|---|
 | `CSStack.DDD.Domain` | ドメイン層 | 値オブジェクト、エンティティ、集約、ドメインイベント、リポジトリ、バリデーション |
 | `CSStack.DDD.Application` | アプリケーション層 | Unit of Work、同時実行競合の例外 |
+
+## ライセンス
+
+[MIT License](LICENSE.txt) の下で公開しています。

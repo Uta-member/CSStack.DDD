@@ -20,18 +20,18 @@ public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, M
 - **用过去时为事件命名**，例如 `MemberRegistered` 或 `EmailChanged`。
 - **将事件设计为不可变的 record。** 事实一旦发生就不会改变。
 - **不要引用聚合本身。** 聚合是可变的，因此应复制消费方需要的值。
-- **从 `TimeProvider` 获取时间**，而不是 `DateTimeOffset.UtcNow`，以便在测试中控制时间。
+- **以参数接收发生时间**，而不是在领域内部读取时钟。时间由调用方（通常是应用层）决定，因此领域的结果不受执行时刻影响、易于测试，也可以记录过去发生的事实（例如导入数据时）。
 
 ## 记录事件
 
 派生自 `AggregateRoot<TSelf, TId>` 的聚合根使用 `AddDomainEvent` 记录事件。
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 

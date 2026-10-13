@@ -6,7 +6,7 @@
 
 | 类型 | 用途 |
 |---|---|
-| `IEntity<TSelf, TId>` | 实体。要求实现 `Id`、`IEquatable<TSelf>` 以及 `==` 和 `!=` 运算符。 |
+| `IEntity<TSelf, TId>` | 实体。要求实现 `Id` 和 `IEquatable<TSelf>`。继承 `Entity<TSelf, TId>` 时还会获得 `==` 和 `!=` 运算符。 |
 | `Entity<TSelf, TId>` | 实现了基于标识符相等性的基类。 |
 
 ### 基于标识符的相等性
@@ -63,7 +63,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// 创建：校验输入、应用业务策略并发布事件
-	public static Member Register(MemberName name, Email email, TimeProvider time)
+	public static Member Register(MemberName name, Email email, DateTimeOffset occurredAt)
 	{
 		List<ValidationError> errors =
 		[
@@ -77,7 +77,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		errors.ThrowIfInvalid();
 
 		var member = new Member(MemberId.New(), name, email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -96,11 +96,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 状态的变更通过以业务意图命名的操作来完成，而不是通过 setter。
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid(); // 关卡
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 
@@ -117,14 +117,14 @@ public void ChangeEmail(Email email, TimeProvider time)
 | 用于审计记录的“谁” | 最后修改人、创建人 | 基础设施层。在提交时根据执行上下文记录。 |
 
 ```csharp
-public void Approve(UserId approver, TimeProvider time)
+public void Approve(UserId approver, DateTimeOffset occurredAt)
 {
 	if (approver == RequestedBy)
 	{
 		throw new ApprovalRuleException("The requester cannot approve their own request.");
 	}
 	ApprovedBy = approver;
-	AddDomainEvent(new OrderApproved(Guid.NewGuid(), time.GetUtcNow(), Id, approver));
+	AddDomainEvent(new OrderApproved(Guid.NewGuid(), occurredAt, Id, approver));
 }
 ```
 

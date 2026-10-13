@@ -17,7 +17,8 @@ CSStack.DDD 为值对象、实体、聚合根、领域事件、仓储和工作�
 
 ## 环境要求
 
-- .NET 10 或更高版本
+- 支持 .NET Standard 2.0 的环境（.NET 8 或更高版本、.NET Framework 4.7.2 或更高版本等）
+- 以 record 实现值对象时需要 C# 9 或更高版本（[详情](docs/zh-CN/getting-started.md#安装)）
 
 ## 安装
 
@@ -38,14 +39,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // 只检查该类型得以存在的最低条件
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // 只检查该类型得以存在的最低条件
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -63,11 +63,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// 创建：校验输入并发布事件
-	public static Member Register(Email email, TimeProvider time)
+	public static Member Register(Email email, DateTimeOffset occurredAt)
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -76,11 +76,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 }
 
 // 应用层中的用例
-public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork, TimeProvider time)
+public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork)
 {
 	public async Task<MemberId> ExecuteAsync(string email, CancellationToken cancellationToken)
 	{
-		var member = Member.Register(new Email(email), time);
+		var member = Member.Register(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);                         // 仅做登记
 		await unitOfWork.CommitAsync(cancellationToken); // 在一个事务中写入聚合及其事件
 		return member.Id;
@@ -106,3 +106,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 |---|---|---|
 | `CSStack.DDD.Domain` | 领域层 | 值对象、实体、聚合、领域事件、仓储、校验 |
 | `CSStack.DDD.Application` | 应用层 | 工作单元、并发冲突异常 |
+
+## 许可证
+
+本项目基于 [MIT License](LICENSE.txt) 授权。

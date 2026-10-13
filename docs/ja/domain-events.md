@@ -20,18 +20,18 @@ public sealed record MemberRegistered(Guid EventId, DateTimeOffset OccurredAt, M
 - **イベント名は過去形にします。** 例：`MemberRegistered`、`EmailChanged`。
 - **イベントは不変のレコードにします。** 事実は、起きた後に変わることはありません。
 - **集約そのものを参照しないでください。** 集約は可変なので、受信側が必要とする値をコピーします。
-- **時刻は `DateTimeOffset.UtcNow` ではなく `TimeProvider` から取得します。** これにより、テストで時刻を制御できます。
+- **発生日時は、ドメインの中で時計を読まずに引数で受け取ります。** 日時は呼び出し側（通常はアプリケーション層）が決めるため、ドメインの結果が実行時刻に左右されずテストしやすくなります。また、過去に起きた事実を記録すること（例えばデータの取り込み）もできます。
 
 ## イベントの記録
 
 `AggregateRoot<TSelf, TId>` から派生した集約ルートは、`AddDomainEvent` でイベントを記録します。
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 

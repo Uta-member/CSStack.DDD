@@ -6,7 +6,7 @@
 
 | インターフェース | 用途 |
 |---|---|
-| `IValueObject<TSelf>` | 値オブジェクト。`IEquatable<TSelf>` と `==`・`!=` 演算子の実装が必要です。 |
+| `IValueObject<TSelf>` | 値オブジェクト。`IEquatable<TSelf>` の実装が必要です。`record` で実装すると `==`・`!=` 演算子も得られます。 |
 | `ISingleValueObject<TSelf, TValue>` | メールアドレスや識別子など、単一の値（`Value`）をラップする値オブジェクト。 |
 
 ## レコードによる実装
@@ -34,7 +34,7 @@ public sealed record MemberId : ISingleValueObject<MemberId, Guid>
 		Value = value;
 	}
 
-	public static MemberId New() => new(Guid.CreateVersion7());
+	public static MemberId New() => new(Guid.NewGuid());
 }
 ```
 
@@ -51,14 +51,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // 値がなければ型として存在できない
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // 値がなければ型として存在できない
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -92,9 +91,9 @@ public sealed record Address(PostalCode PostalCode, Prefecture Prefecture) : IVa
 複数のプロパティにまたがるルールは、値オブジェクト全体に属します。空のパスで報告してください。
 
 ```csharp
-public sealed record InvalidPeriod(DateOnly Start, DateOnly End) : ValidationError;
+public sealed record InvalidPeriod(DateTime Start, DateTime End) : ValidationError;
 
-public sealed record Period(DateOnly Start, DateOnly End) : IValueObject<Period>, IValidatable
+public sealed record Period(DateTime Start, DateTime End) : IValueObject<Period>, IValidatable
 {
 	public IReadOnlyList<ValidationError> Validate()
 	{

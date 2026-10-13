@@ -6,7 +6,7 @@ An entity is an object defined by its identity rather than its attributes. A mem
 
 | Type | Purpose |
 |---|---|
-| `IEntity<TSelf, TId>` | An entity. Requires `Id`, `IEquatable<TSelf>` and the `==` and `!=` operators. |
+| `IEntity<TSelf, TId>` | An entity. Requires `Id` and `IEquatable<TSelf>`. Derive from `Entity<TSelf, TId>` to also get the `==` and `!=` operators. |
 | `Entity<TSelf, TId>` | A base class that implements equality by identifier. |
 
 ### Equality by identifier
@@ -63,7 +63,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// Creation: validates the input, applies business policies and raises an event
-	public static Member Register(MemberName name, Email email, TimeProvider time)
+	public static Member Register(MemberName name, Email email, DateTimeOffset occurredAt)
 	{
 		List<ValidationError> errors =
 		[
@@ -77,7 +77,7 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		errors.ThrowIfInvalid();
 
 		var member = new Member(MemberId.New(), name, email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -96,11 +96,11 @@ The toolkit does not define `Create` or `Reconstruct` in an interface, because t
 State changes are made through operations named after the intent of the business, not through setters.
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid(); // the gate
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 
@@ -117,14 +117,14 @@ Distinguish between two kinds of "who":
 | Who is recorded for auditing | Last modified by, created by | The infrastructure. Record it on commit from the execution context. |
 
 ```csharp
-public void Approve(UserId approver, TimeProvider time)
+public void Approve(UserId approver, DateTimeOffset occurredAt)
 {
 	if (approver == RequestedBy)
 	{
 		throw new ApprovalRuleException("The requester cannot approve their own request.");
 	}
 	ApprovedBy = approver;
-	AddDomainEvent(new OrderApproved(Guid.NewGuid(), time.GetUtcNow(), Id, approver));
+	AddDomainEvent(new OrderApproved(Guid.NewGuid(), occurredAt, Id, approver));
 }
 ```
 

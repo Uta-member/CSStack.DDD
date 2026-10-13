@@ -20,18 +20,18 @@ Guidelines:
 - **Name events in the past tense**, such as `MemberRegistered` or `EmailChanged`.
 - **Make events immutable records.** A fact does not change after it has happened.
 - **Do not reference the aggregate itself.** The aggregate is mutable, so copy the values that consumers need.
-- **Get the time from `TimeProvider`**, not from `DateTimeOffset.UtcNow`, so that tests can control it.
+- **Receive the time of occurrence as an argument** instead of reading the clock in the domain. The caller (usually the application layer) decides the time, so the domain stays deterministic and easy to test, and it can also record facts that happened earlier (for example, when importing data).
 
 ## Recording events
 
 Aggregate roots that derive from `AggregateRoot<TSelf, TId>` record events with `AddDomainEvent`.
 
 ```csharp
-public void ChangeEmail(Email email, TimeProvider time)
+public void ChangeEmail(Email email, DateTimeOffset occurredAt)
 {
 	email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 	Email = email;
-	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), time.GetUtcNow(), Id, email));
+	AddDomainEvent(new MemberEmailChanged(Guid.NewGuid(), occurredAt, Id, email));
 }
 ```
 

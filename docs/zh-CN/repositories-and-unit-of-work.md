@@ -53,14 +53,14 @@ public interface ICartRepository : IDeletableRepository<Cart, CartId> { } // 购
 ## 工作单元
 
 ```csharp
-public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfWork unitOfWork, TimeProvider time)
+public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfWork unitOfWork)
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
 		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
 			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
 
-		member.ChangeEmail(new Email(email), time);
+		member.ChangeEmail(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);
 		await unitOfWork.CommitAsync(cancellationToken);
 	}

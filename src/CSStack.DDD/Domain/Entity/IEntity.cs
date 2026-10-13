@@ -6,6 +6,7 @@ namespace CSStack.DDD.Domain
 	/// <remarks>
 	/// Two entities are equal when they are of the same type and have the same identifier,
 	/// regardless of the values of their other attributes.
+	/// Derive from <see cref="Entity{TSelf, TId}"/> to get this equality, including the <c>==</c> and <c>!=</c> operators.
 	/// </remarks>
 	/// <typeparam name="TSelf">The implementing entity type.</typeparam>
 	/// <typeparam name="TId">The type of the identifier.</typeparam>
@@ -17,21 +18,5 @@ namespace CSStack.DDD.Domain
 		/// Gets the identifier of the entity. The identifier never changes during the lifetime of the entity.
 		/// </summary>
 		TId Id { get; }
-
-		/// <summary>
-		/// Determines whether two entities are equal by their identifiers.
-		/// </summary>
-		/// <param name="left">The first entity to compare.</param>
-		/// <param name="right">The second entity to compare.</param>
-		/// <returns><see langword="true"/> if the entities have the same identifier; otherwise, <see langword="false"/>.</returns>
-		static abstract bool operator ==(TSelf? left, TSelf? right);
-
-		/// <summary>
-		/// Determines whether two entities are not equal by their identifiers.
-		/// </summary>
-		/// <param name="left">The first entity to compare.</param>
-		/// <param name="right">The second entity to compare.</param>
-		/// <returns><see langword="true"/> if the entities have different identifiers; otherwise, <see langword="false"/>.</returns>
-		static abstract bool operator !=(TSelf? left, TSelf? right);
 	}
 }

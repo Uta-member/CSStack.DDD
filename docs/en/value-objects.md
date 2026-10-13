@@ -6,7 +6,7 @@ A value object is an immutable object defined only by its attributes. Two value 
 
 | Interface | Purpose |
 |---|---|
-| `IValueObject<TSelf>` | A value object. Requires `IEquatable<TSelf>` and the `==` and `!=` operators. |
+| `IValueObject<TSelf>` | A value object. Requires `IEquatable<TSelf>`. Implement it as a `record` to also get the `==` and `!=` operators. |
 | `ISingleValueObject<TSelf, TValue>` | A value object that wraps a single value (`Value`), such as an email address or an identifier. |
 
 ## Implementing with records
@@ -34,7 +34,7 @@ public sealed record MemberId : ISingleValueObject<MemberId, Guid>
 		Value = value;
 	}
 
-	public static MemberId New() => new(Guid.CreateVersion7());
+	public static MemberId New() => new(Guid.NewGuid());
 }
 ```
 
@@ -51,14 +51,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // the type cannot exist without a value
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // the type cannot exist without a value
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -92,9 +91,9 @@ public sealed record Address(PostalCode PostalCode, Prefecture Prefecture) : IVa
 A rule that spans several properties belongs to the value object as a whole. Report it with an empty path.
 
 ```csharp
-public sealed record InvalidPeriod(DateOnly Start, DateOnly End) : ValidationError;
+public sealed record InvalidPeriod(DateTime Start, DateTime End) : ValidationError;
 
-public sealed record Period(DateOnly Start, DateOnly End) : IValueObject<Period>, IValidatable
+public sealed record Period(DateTime Start, DateTime End) : IValueObject<Period>, IValidatable
 {
 	public IReadOnlyList<ValidationError> Validate()
 	{

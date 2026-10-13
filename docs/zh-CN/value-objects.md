@@ -6,7 +6,7 @@
 
 | 接口 | 用途 |
 |---|---|
-| `IValueObject<TSelf>` | 值对象。要求实现 `IEquatable<TSelf>` 以及 `==` 和 `!=` 运算符。 |
+| `IValueObject<TSelf>` | 值对象。要求实现 `IEquatable<TSelf>`。以 `record` 实现时还会获得 `==` 和 `!=` 运算符。 |
 | `ISingleValueObject<TSelf, TValue>` | 包装单个值（`Value`）的值对象，例如电子邮件地址或标识符。 |
 
 ## 用 record 实现
@@ -34,7 +34,7 @@ public sealed record MemberId : ISingleValueObject<MemberId, Guid>
 		Value = value;
 	}
 
-	public static MemberId New() => new(Guid.CreateVersion7());
+	public static MemberId New() => new(Guid.NewGuid());
 }
 ```
 
@@ -51,14 +51,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // 没有值，该类型就无法存在
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // 没有值，该类型就无法存在
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -92,9 +91,9 @@ public sealed record Address(PostalCode PostalCode, Prefecture Prefecture) : IVa
 跨越多个属性的规则属于整个值对象。请以空路径报告此类错误。
 
 ```csharp
-public sealed record InvalidPeriod(DateOnly Start, DateOnly End) : ValidationError;
+public sealed record InvalidPeriod(DateTime Start, DateTime End) : ValidationError;
 
-public sealed record Period(DateOnly Start, DateOnly End) : IValueObject<Period>, IValidatable
+public sealed record Period(DateTime Start, DateTime End) : IValueObject<Period>, IValidatable
 {
 	public IReadOnlyList<ValidationError> Validate()
 	{

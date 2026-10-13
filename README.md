@@ -1,6 +1,6 @@
 # CSStack.DDD
 
-**English** | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+**English** | [日本語](https://github.com/Uta-member/CSStack.DDD/blob/master/README.ja.md) | [简体中文](https://github.com/Uta-member/CSStack.DDD/blob/master/README.zh-CN.md)
 
 A lightweight toolkit of building blocks for Domain-Driven Design (DDD) in C#.
 
@@ -17,7 +17,8 @@ CSStack.DDD provides interfaces and base classes for value objects, entities, ag
 
 ## Requirements
 
-- .NET 10 or later
+- .NET Standard 2.0 or later (.NET 8 or later, .NET Framework 4.7.2 or later, and so on)
+- C# 9 or later to implement value objects as records ([details](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/getting-started.md#installation))
 
 ## Installation
 
@@ -38,14 +39,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value); // only the minimum condition for the type to exist
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value)); // only the minimum condition for the type to exist
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -63,11 +63,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 	}
 
 	// Creation: validates the input and raises an event
-	public static Member Register(Email email, TimeProvider time)
+	public static Member Register(Email email, DateTimeOffset occurredAt)
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
@@ -76,11 +76,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 }
 
 // A use case in the application layer
-public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork, TimeProvider time)
+public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members, IUnitOfWork unitOfWork)
 {
 	public async Task<MemberId> ExecuteAsync(string email, CancellationToken cancellationToken)
 	{
-		var member = Member.Register(new Email(email), time);
+		var member = Member.Register(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);                         // registers only
 		await unitOfWork.CommitAsync(cancellationToken); // writes the aggregate and its events in one transaction
 		return member.Id;
@@ -92,13 +92,13 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 
 | Topic | Description |
 |---|---|
-| [Getting started](docs/en/getting-started.md) | Installation and a walkthrough of the building blocks |
-| [Value objects](docs/en/value-objects.md) | Equality, single-value objects and what to check in the constructor |
-| [Entities and aggregates](docs/en/entities-and-aggregates.md) | Identity, lifecycle (creation and reconstruction) and operations |
-| [Domain events](docs/en/domain-events.md) | Recording, collecting and dispatching events |
-| [Validation](docs/en/validation.md) | Typed errors, paths, and diagnosing versus enforcing |
-| [Repositories and the unit of work](docs/en/repositories-and-unit-of-work.md) | Persistence, transactions and concurrency |
-| [Design decisions](docs/en/design-decisions.md) | Why the toolkit is designed the way it is |
+| [Getting started](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/getting-started.md) | Installation and a walkthrough of the building blocks |
+| [Value objects](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/value-objects.md) | Equality, single-value objects and what to check in the constructor |
+| [Entities and aggregates](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/entities-and-aggregates.md) | Identity, lifecycle (creation and reconstruction) and operations |
+| [Domain events](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/domain-events.md) | Recording, collecting and dispatching events |
+| [Validation](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/validation.md) | Typed errors, paths, and diagnosing versus enforcing |
+| [Repositories and the unit of work](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/repositories-and-unit-of-work.md) | Persistence, transactions and concurrency |
+| [Design decisions](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/design-decisions.md) | Why the toolkit is designed the way it is |
 
 ## Namespaces
 
@@ -106,3 +106,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 |---|---|---|
 | `CSStack.DDD.Domain` | Domain | Value objects, entities, aggregates, domain events, repositories, validation |
 | `CSStack.DDD.Application` | Application | Unit of work, concurrency conflict exception |
+
+## License
+
+This project is licensed under the [MIT License](https://github.com/Uta-member/CSStack.DDD/blob/master/LICENSE.txt).

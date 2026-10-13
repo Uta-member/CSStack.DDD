@@ -8,7 +8,16 @@ This guide walks through the building blocks of CSStack.DDD by modeling a simple
 dotnet add package CSStack.DDD
 ```
 
-CSStack.DDD targets .NET 10. It uses static abstract interface members, so C# 11 or later is required.
+CSStack.DDD targets .NET Standard 2.0, .NET 8 and .NET 10, so it can also be used from .NET Framework (4.7.2 or later is recommended).
+
+The examples in this documentation use records. To use records on .NET Framework, set `LangVersion` to `9.0` or later (for example, `latest`) in your project file, and define the following type in your project (or use a polyfill package such as PolySharp).
+
+```csharp
+namespace System.Runtime.CompilerServices
+{
+	internal static class IsExternalInit { }
+}
+```
 
 ## The two namespaces
 
@@ -33,7 +42,7 @@ public sealed record MemberId : ISingleValueObject<MemberId, Guid>
 		Value = value;
 	}
 
-	public static MemberId New() => new(Guid.CreateVersion7());
+	public static MemberId New() => new(Guid.NewGuid());
 }
 
 public sealed record Email : ISingleValueObject<Email, string>, IValidatable
@@ -42,14 +51,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value);
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value));
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -79,11 +87,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		Email = email;
 	}
 
-	public static Member Register(Email email, TimeProvider time)
+	public static Member Register(Email email, DateTimeOffset occurredAt)
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 

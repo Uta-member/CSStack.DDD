@@ -8,7 +8,16 @@
 dotnet add package CSStack.DDD
 ```
 
-CSStack.DDD は .NET 10 を対象としています。インターフェースの static abstract メンバーを使用しているため、C# 11 以降が必要です。
+CSStack.DDD は .NET Standard 2.0、.NET 8、.NET 10 を対象としているため、.NET Framework（4.7.2 以降を推奨）からも利用できます。
+
+このドキュメントの例では record を使用しています。.NET Framework で record を使うには、プロジェクトファイルで `LangVersion` を `9.0` 以降（例えば `latest`）に設定し、プロジェクト内に次の型を定義してください（PolySharp などの polyfill パッケージを使っても構いません）。
+
+```csharp
+namespace System.Runtime.CompilerServices
+{
+	internal static class IsExternalInit { }
+}
+```
 
 ## 2 つの名前空間
 
@@ -33,7 +42,7 @@ public sealed record MemberId : ISingleValueObject<MemberId, Guid>
 		Value = value;
 	}
 
-	public static MemberId New() => new(Guid.CreateVersion7());
+	public static MemberId New() => new(Guid.NewGuid());
 }
 
 public sealed record Email : ISingleValueObject<Email, string>, IValidatable
@@ -42,14 +51,13 @@ public sealed record Email : ISingleValueObject<Email, string>, IValidatable
 
 	public Email(string value)
 	{
-		ArgumentNullException.ThrowIfNull(value);
-		Value = value;
+		Value = value ?? throw new ArgumentNullException(nameof(value));
 	}
 
 	public IReadOnlyList<ValidationError> Validate()
 	{
 		if (string.IsNullOrWhiteSpace(Value)) return [new Required()];
-		if (!Value.Contains('@')) return [new InvalidFormat()];
+		if (!Value.Contains("@")) return [new InvalidFormat()];
 		return [];
 	}
 }
@@ -79,11 +87,11 @@ public sealed class Member : AggregateRoot<Member, MemberId>
 		Email = email;
 	}
 
-	public static Member Register(Email email, TimeProvider time)
+	public static Member Register(Email email, DateTimeOffset occurredAt)
 	{
 		email.Validate().Under(nameof(Email)).ThrowIfInvalid();
 		var member = new Member(MemberId.New(), email);
-		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), time.GetUtcNow(), member.Id, email));
+		member.AddDomainEvent(new MemberRegistered(Guid.NewGuid(), occurredAt, member.Id, email));
 		return member;
 	}
 
