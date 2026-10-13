@@ -39,7 +39,7 @@ public sealed class Member : Entity<Member, MemberId>
 
 | 类型 | 用途 |
 |---|---|
-| `IAggregateRoot<TSelf, TId>` | 聚合根。同时也是 `IDomainEventSource`。 |
+| `IAggregateRoot<TSelf, TId>` | 聚合根。同时也是 `IDomainEventSource`。必须是类。 |
 | `AggregateRoot<TSelf, TId>` | 可记录领域事件的基类。派生自 `Entity<TSelf, TId>`。 |
 
 仓储只为聚合根定义。聚合内部的实体不会被单独加载或保存。

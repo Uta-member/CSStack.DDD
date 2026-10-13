@@ -39,7 +39,7 @@ An aggregate is a cluster of entities and value objects that is kept consistent 
 
 | Type | Purpose |
 |---|---|
-| `IAggregateRoot<TSelf, TId>` | An aggregate root. Also an `IDomainEventSource`. |
+| `IAggregateRoot<TSelf, TId>` | An aggregate root. Also an `IDomainEventSource`. Must be a class. |
 | `AggregateRoot<TSelf, TId>` | A base class that records domain events. Derives from `Entity<TSelf, TId>`. |
 
 Repositories are defined per aggregate root only. Entities inside an aggregate are not loaded or saved on their own.
