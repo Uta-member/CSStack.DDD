@@ -8,7 +8,7 @@ CSStack.DDD は、C# でドメイン駆動設計（DDD）を行うための軽�
 
 - 値オブジェクト、エンティティ、集約ルート、ドメインイベント、リポジトリ、Unit of Work のインターフェースと基底クラスを提供する。
 - 永続化技術（EF Core、Dapper など）には一切依存しない。外部パッケージへの依存もない。
-- 現在のバージョンは `0.1.0` で、まだリリースしていない。
+- 最初のバージョン（`0.1.0` の予定）はまだリリースしていない。
 
 ## ディレクトリ構成
 
@@ -42,6 +42,17 @@ dotnet build CSStack.DDD.slnx
 - `TreatWarningsAsErrors` と `GenerateDocumentationFile` が有効です。public なメンバーに XML ドキュメントコメントがないと、ビルドが失敗します。
 - テストプロジェクトはまだありません。変更後は少なくともビルドが警告 0 で通ることを確認してください。テストを追加する場合は `tests/` に置き、`CSStack.DDD.slnx` の `/tests/` フォルダーに登録します。
 - パッケージの作成は `dotnet pack src/CSStack.DDD/CSStack.DDD.csproj -c Release` です（README.md と CSStack.png が同梱される）。
+- csproj の `Version` はローカルビルド用の `0.0.0-local` です。リリースのバージョンは書き換えません。
+
+## リリース
+
+master へのプッシュとプルリクエストでは、`.github/workflows/build.yml` がビルドとパックを確認します。
+
+GitHub でリリースを公開すると、`.github/workflows/publish.yml` が NuGet.org に発行します。
+
+- タグは `v1.2.3`（プレリリースは `v1.2.3-beta.1`）。先頭の `v` を除いた値が `-p:Version` としてビルドとパックに渡される。
+- リリース前に `CSStack.DDD.csproj` の `PackageReleaseNotes` を更新してコミットしておく。
+- NuGet.org へは Trusted Publishing（OIDC）で認証する。API キーはリポジトリに置かない。
 
 ## コーディング規約
 

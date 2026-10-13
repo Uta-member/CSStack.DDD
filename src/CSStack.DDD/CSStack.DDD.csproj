@@ -11,7 +11,8 @@
 
   <PropertyGroup>
     <PackageId>CSStack.DDD</PackageId>
-    <Version>0.1.0</Version>
+    <!-- The release workflow passes the version from the Git tag (-p:Version=...). This value is used only for local builds. -->
+    <Version>0.0.0-local</Version>
     <Title>CSStack.DDD</Title>
     <Authors>Uta Sugane</Authors>
     <Copyright>Copyright (c) 2026 Uta Sugane</Copyright>
