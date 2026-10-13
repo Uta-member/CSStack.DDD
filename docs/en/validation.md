@@ -97,6 +97,14 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 }
 ```
 
+## Exception messages for logs
+
+`DomainValidationException.Message` lists the paths and type names of the first 10 errors in input order, for example `One or more validation errors occurred: Name (TooLong), Email (InvalidFormat)`. An error with an empty path is listed by type name alone, such as `Required`. Error property values are not included.
+
+If there are more than 10 errors, the message ends with the number omitted, such as `, ... (3 more)`. `Errors` still contains every error. If the constructor is called with an empty sequence, the message remains `One or more validation errors occurred.`
+
+This message is for diagnostics in logs. Compose messages for users from `Errors` in the presentation layer, as shown below.
+
 ## Two kinds of rules
 
 | | Rules of the value | Policies of the operation |
