@@ -16,6 +16,7 @@ CSStack.DDD は、C# でドメイン駆動設計（DDD）を行うための軽�
 CSStack.DDD.slnx                 ソリューション
 src/CSStack.DDD/
   CSStack.DDD.csproj             パッケージ情報とリリースノートもここにある
+  CSStack.DDD.snk                厳密な名前のキー（意図的に公開している）
   Domain/                        名前空間 CSStack.DDD.Domain
     DomainException.cs           ドメインが操作を拒否したときの例外の基底クラス
     ValueObject/                 IValueObject, ISingleValueObject
@@ -50,6 +51,15 @@ dotnet test --solution CSStack.DDD.slnx
 - テストプロジェクトを追加する場合は `tests/` に置き、`CSStack.DDD.slnx` の `/tests/` フォルダーに登録します。
 - パッケージの作成は `dotnet pack src/CSStack.DDD/CSStack.DDD.csproj -c Release` です（README.md と CSStack.png が同梱される）。
 - csproj の `Version` はローカルビルド用の `0.0.0-local` です。リリースのバージョンは書き換えません。
+
+### 厳密な名前とアセンブリのバージョン
+
+アセンブリには厳密な名前を付けています（イシュー #9 で決定）。
+
+- 理由: netstandard2.0 を通じて .NET Framework の利用者も対象にしている。.NET Framework では、厳密な名前を持つアセンブリから名前のないアセンブリを参照できない。.NET Core 以降では厳密な名前は検証されないので、付けても害はない。
+- キーは `src/CSStack.DDD/CSStack.DDD.snk` です。.NET のライブラリのガイドラインどおり、秘密鍵ごとリポジトリで公開しています。厳密な名前はセキュリティのためではなく、アセンブリの識別のためのものです。
+- キーを変えたり、厳密な名前をやめたりしないでください。アセンブリの識別子が変わり、参照しているすべてのアセンブリにとって破壊的変更になります。`AssemblyTests` が公開キートークンを確認しています。
+- `AssemblyVersion` はメジャーバージョンだけ（`{Major}.0.0.0`、0.x の間は `0.0.0.0`）にしています。.NET Framework のアプリがメジャーバージョン内で更新したときに、バインディングリダイレクトを不要にするためです。`FileVersion` と `InformationalVersion` には完全なバージョンが入ります。
 
 ## リリース
 
