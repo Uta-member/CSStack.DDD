@@ -11,7 +11,7 @@ namespace CSStack.DDD.Domain
 	/// <typeparam name="TAggregate">The type of the aggregate root.</typeparam>
 	/// <typeparam name="TId">The type of the identifier of the aggregate root.</typeparam>
 	public interface IDeletableRepository<TAggregate, TId> : IRepository<TAggregate, TId>
-		where TAggregate : IAggregateRoot<TAggregate, TId>
+		where TAggregate : class, IAggregateRoot<TAggregate, TId>
 		where TId : notnull, IEquatable<TId>
 	{
 		/// <summary>

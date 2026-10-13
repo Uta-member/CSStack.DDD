@@ -85,5 +85,13 @@ namespace CSStack.DDD.Tests
 
 			Assert.Null(method);
 		}
+
+		[Fact]
+		public void AggregateRootMustBeReferenceType()
+		{
+			var self = typeof(IAggregateRoot<,>).GetGenericArguments()[0];
+
+			Assert.True(self.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint));
+		}
 	}
 }

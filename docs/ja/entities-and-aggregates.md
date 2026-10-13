@@ -39,7 +39,7 @@ public sealed class Member : Entity<Member, MemberId>
 
 | 型 | 用途 |
 |---|---|
-| `IAggregateRoot<TSelf, TId>` | 集約ルート。`IDomainEventSource` でもあります。 |
+| `IAggregateRoot<TSelf, TId>` | 集約ルート。`IDomainEventSource` でもあります。クラスでなければなりません。 |
 | `AggregateRoot<TSelf, TId>` | ドメインイベントを記録する基底クラス。`Entity<TSelf, TId>` から派生しています。 |
 
 リポジトリは集約ルートごとにのみ定義します。集約内部のエンティティを単独で読み込んだり保存したりすることはありません。
