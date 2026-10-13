@@ -13,7 +13,7 @@ CSStack.DDD は、C# でドメイン駆動設計（DDD）を行うための軽�
 ## ディレクトリ構成
 
 ```
-CSStack.DDD.slnx                 ソリューション（/tests/ フォルダーは空のまま定義されている）
+CSStack.DDD.slnx                 ソリューション
 src/CSStack.DDD/
   CSStack.DDD.csproj             パッケージ情報とリリースノートもここにある
   Domain/                        名前空間 CSStack.DDD.Domain
@@ -27,7 +27,10 @@ src/CSStack.DDD/
   Polyfills/                     netstandard2.0 向けの IsExternalInit
 docs/{en,ja,zh-CN}/              利用者向けドキュメント（8 ページ × 3 言語。migrating-from-tada.md は前身の CSStack.TADA からの移行ガイド）
 README.md / README.ja.md / README.zh-CN.md
-tests/                           まだテストプロジェクトはない
+global.json                      dotnet test で Microsoft.Testing.Platform を使う設定
+tests/CSStack.DDD.Tests/         xUnit v3 のテスト（net8.0;net10.0）
+  Domain/ Application/           src と同じ構成。名前空間はすべて CSStack.DDD.Tests
+  TestDoubles/                   テスト用のエンティティ、集約、イベント
 ```
 
 サブフォルダーは名前空間に反映しません。`Domain/` 配下はすべて `CSStack.DDD.Domain`、`Application/` 配下はすべて `CSStack.DDD.Application` です。
@@ -36,17 +39,20 @@ tests/                           まだテストプロジェクトはない
 
 ```shell
 dotnet build CSStack.DDD.slnx
+dotnet test --solution CSStack.DDD.slnx
 ```
 
 - ターゲットは `netstandard2.0;net8.0;net10.0` です。.NET 8 と .NET 10 の SDK が必要です。
 - `TreatWarningsAsErrors` と `GenerateDocumentationFile` が有効です。public なメンバーに XML ドキュメントコメントがないと、ビルドが失敗します。
-- テストプロジェクトはまだありません。変更後は少なくともビルドが警告 0 で通ることを確認してください。テストを追加する場合は `tests/` に置き、`CSStack.DDD.slnx` の `/tests/` フォルダーに登録します。
+- 変更後は、ビルドが警告 0 で通り、テストがすべて成功することを確認してください。動作を変えたり追加したりしたときは、テストも追加・更新します。
+- テストは xUnit v3 で、Microsoft.Testing.Platform 上で動きます。.NET 10 SDK の `dotnet test` はルートの `global.json` の設定で MTP モードになるので、`--solution` などの MTP の引数を使います。
+- テストプロジェクトを追加する場合は `tests/` に置き、`CSStack.DDD.slnx` の `/tests/` フォルダーに登録します。
 - パッケージの作成は `dotnet pack src/CSStack.DDD/CSStack.DDD.csproj -c Release` です（README.md と CSStack.png が同梱される）。
 - csproj の `Version` はローカルビルド用の `0.0.0-local` です。リリースのバージョンは書き換えません。
 
 ## リリース
 
-master へのプッシュとプルリクエストでは、`.github/workflows/build.yml` がビルドとパックを確認します。
+master へのプッシュとプルリクエストでは、`.github/workflows/build.yml` がビルド、テスト、パックを確認します。
 
 GitHub でリリースを公開すると、`.github/workflows/publish.yml` が NuGet.org に発行します。
 
