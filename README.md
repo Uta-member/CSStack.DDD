@@ -100,6 +100,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 | [Validation](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/validation.md) | Typed errors, paths, and diagnosing versus enforcing |
 | [Repositories and the unit of work](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/repositories-and-unit-of-work.md) | Persistence, transactions and concurrency |
 | [Design decisions](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/design-decisions.md) | Why the toolkit is designed the way it is |
+| [Migrating from CSStack.TADA](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/migrating-from-tada.md) | Moving a project from CSStack.TADA, the predecessor of this toolkit |
 
 ## Namespaces
 

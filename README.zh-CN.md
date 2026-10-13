@@ -100,6 +100,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 | [校验](docs/zh-CN/validation.md) | 强类型错误、路径，以及诊断与强制的区别 |
 | [仓储与工作单元](docs/zh-CN/repositories-and-unit-of-work.md) | 持久化、事务与并发控制 |
 | [设计决策](docs/zh-CN/design-decisions.md) | 本工具包为何如此设计 |
+| [从 CSStack.TADA 迁移](docs/zh-CN/migrating-from-tada.md) | 如何迁移使用前身 CSStack.TADA 的项目 |
 
 ## 命名空间
 

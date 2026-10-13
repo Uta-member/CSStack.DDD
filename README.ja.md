@@ -100,6 +100,7 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 | [バリデーション](docs/ja/validation.md) | 型付きエラー、パス、診断と強制の違い |
 | [リポジトリと Unit of Work](docs/ja/repositories-and-unit-of-work.md) | 永続化、トランザクション、同時実行制御 |
 | [設計判断](docs/ja/design-decisions.md) | このツールキットがなぜこのように設計されているのか |
+| [CSStack.TADA からの移行](docs/ja/migrating-from-tada.md) | 前身の CSStack.TADA を使っているプロジェクトの移行方法 |
 
 ## 名前空間
 

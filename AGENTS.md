@@ -25,7 +25,7 @@ src/CSStack.DDD/
   Application/                   名前空間 CSStack.DDD.Application
                                  IUnitOfWork, ConcurrencyConflictException
   Polyfills/                     netstandard2.0 向けの IsExternalInit
-docs/{en,ja,zh-CN}/              利用者向けドキュメント（7 ページ × 3 言語）
+docs/{en,ja,zh-CN}/              利用者向けドキュメント（8 ページ × 3 言語。migrating-from-tada.md は前身の CSStack.TADA からの移行ガイド）
 README.md / README.ja.md / README.zh-CN.md
 tests/                           まだテストプロジェクトはない
 ```
