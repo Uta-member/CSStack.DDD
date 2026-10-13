@@ -18,21 +18,25 @@
     <Copyright>Copyright (c) 2026 Uta Sugane</Copyright>
     <Description>A lightweight toolkit of building blocks for Domain-Driven Design (DDD) in C#. It provides interfaces and base classes for value objects, entities, aggregate roots, domain events, repositories and the unit of work, with no dependency on any persistence technology.</Description>
     <PackageTags>DDD;DomainDrivenDesign;CleanArchitecture;OnionArchitecture;ValueObject;Entity;AggregateRoot;DomainEvents;Repository;UnitOfWork</PackageTags>
-    <PackageReleaseNotes>Initial release.
+    <PackageReleaseNotes>Initial release (0.1.0).
+
+Targets netstandard2.0, net8.0 and net10.0, with no dependencies on other packages or on any persistence technology.
 
 Domain (CSStack.DDD.Domain):
-- IValueObject and ISingleValueObject: value objects with equality by attributes.
-- IEntity and Entity: entities with equality by identifier. Equals and GetHashCode are sealed in the base class.
-- IAggregateRoot and AggregateRoot: aggregate roots that record domain events.
-- IDomainEvent and IDomainEventSource: domain events and a non-generic interface for collecting them from any aggregate.
-- IRepository and IDeletableRepository: repositories that register aggregates to be saved or deleted on commit.
-- IValidatable, ValidationError and DomainValidationException: validation with typed errors and member paths (for example, "Address.PostalCode").
+- IValueObject and ISingleValueObject: value objects with equality by attributes. Implement them with records.
+- IEntity and Entity: entities with equality by identifier. Equals and GetHashCode are sealed in the base class, which also provides the == and != operators.
+- IAggregateRoot and AggregateRoot: aggregate roots that record domain events with AddDomainEvent.
+- IDomainEvent and IDomainEventSource: domain events with an ID and an occurrence time, and a non-generic interface for collecting them from any aggregate with PullDomainEvents.
+- IRepository and IDeletableRepository: repositories with FindAsync and Save, and Delete in a separate interface. Changes are applied when the unit of work commits.
+- IValidatable, ValidationError and DomainValidationException: validation that reports typed errors with member paths (for example, "Address.PostalCode").
 - Built-in validation errors: Required, InvalidFormat, TooLong, TooShort and OutOfRange.
-- ValidationErrorExtensions: Under to prefix error paths, and ThrowIfInvalid to throw when any error exists.
+- ValidationErrorExtensions: Under to prefix error paths, and ThrowIfInvalid to throw DomainValidationException when any error exists.
 
 Application (CSStack.DDD.Application):
-- IUnitOfWork: commits all registered changes in a single transaction.
-- ConcurrencyConflictException: a common exception for concurrency conflicts detected by the infrastructure.</PackageReleaseNotes>
+- IUnitOfWork: commits all registered changes in a single transaction with CommitAsync.
+- ConcurrencyConflictException: a common exception for concurrency conflicts detected by the infrastructure.
+
+Documentation: https://github.com/Uta-member/CSStack.DDD/tree/master/docs/en</PackageReleaseNotes>
     <PackageIcon>CSStack.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
