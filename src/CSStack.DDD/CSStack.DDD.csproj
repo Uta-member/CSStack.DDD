@@ -45,11 +45,21 @@ Documentation: https://github.com/Uta-member/CSStack.DDD/tree/master/docs/en</Pa
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Checks on pack that the targets in the package are compatible with each other. Set PackageValidationBaselineVersion after 1.0 is released to also check compatibility with the previous version. -->
+    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Tracks the public API in PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt, so that unintended changes fail the build. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+    <!-- The files in the project directory hold the API common to every target. The API that differs between targets, such as the return type of the Clone method of records (covariant only from net8.0), is in PublicAPI/{TargetFramework}/. -->
+    <AdditionalFiles Include="PublicAPI\$(TargetFramework)\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\$(TargetFramework)\PublicAPI.Unshipped.txt" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
