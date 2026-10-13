@@ -72,6 +72,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 - 如果会员不存在，`GetAsync` 会抛出 `AggregateNotFoundException`。请在表示层统一处理一次（例如返回 HTTP 404）。
 - 在同一个 DI 作用域（每个请求一个）内，仓储与工作单元共享同一个连接。
 - 没有回滚方法。如果工作单元在未提交的情况下被释放，变更就会被丢弃。
+- 工作单元应当只使用一次。提交成功或失败后，都应释放工作单元并丢弃聚合实例。对于回滚后可以安全重试的操作，请创建新的作用域，从加载开始重新执行整个用例；再次调用 `CommitAsync` 无法恢复从旧聚合中取出的事件。如果提交结果未知，请先确认持久化结果，或通过应用层的幂等机制保证安全，再进行重试。
 - 领域服务不负责提交。它们只操作接收到的聚合，加载、保存和提交由应用服务负责。
 
 ## 实现基础设施层
@@ -128,17 +129,18 @@ Save(order)
 以下代码草图展示了实现所需的各个部分，并非完整实现。
 
 ```csharp
-internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IAsyncDisposable
+internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IDisposable
 {
 	private DbTransaction? _transaction;
-	private readonly Dictionary<object, long> _loaded = new(ReferenceEqualityComparer.Instance); // 聚合 → 令牌
+	private readonly Dictionary<object, long> _loaded = new(AggregateReferenceComparer.Instance); // 聚合 → 令牌
 	private readonly List<Func<DbTransaction, CancellationToken, Task>> _pending = [];
 
 	internal async Task<DbTransaction> GetTransactionAsync(CancellationToken cancellationToken)
 	{
 		if (_transaction is not null) return _transaction;
 		await connection.OpenAsync(cancellationToken);
-		return _transaction = await connection.BeginTransactionAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		return _transaction = connection.BeginTransaction();
 	}
 
 	internal void MarkLoaded(object aggregate, long token) => _loaded[aggregate] = token;
@@ -150,16 +152,27 @@ internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, I
 		var transaction = await GetTransactionAsync(cancellationToken);
 		foreach (var work in _pending) await work(transaction, cancellationToken);
 		// 在此处从已登记的聚合中取出领域事件，并写入发件箱（参阅领域事件）
-		await transaction.CommitAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		transaction.Commit();
 	}
 
-	public async ValueTask DisposeAsync()
+	public void Dispose()
 	{
-		if (_transaction is not null) await _transaction.DisposeAsync(); // 未提交时会回滚
-		await connection.DisposeAsync();
+		if (_transaction is not null) _transaction.Dispose(); // 未提交时会回滚
+		connection.Dispose();
+	}
+
+	private sealed class AggregateReferenceComparer : IEqualityComparer<object>
+	{
+		public static AggregateReferenceComparer Instance { get; } = new();
+
+		bool IEqualityComparer<object>.Equals(object? x, object? y) => ReferenceEquals(x, y);
+		int IEqualityComparer<object>.GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 	}
 }
 ```
+
+此示例使用同步的事务和释放 API，因此也适用于 .NET Framework 4.7.2。令牌属于加载时的特定实例，而实体相等性比较的是标识符，因此使用 `AggregateReferenceComparer` 按对象引用比较。数据库读写仍然可以异步执行。在开启和提交事务前会检查取消令牌，但无法中断正在执行的这些同步调用。
 
 ```csharp
 public void Save(Order order) => _unitOfWork.Enqueue(async (transaction, cancellationToken) =>

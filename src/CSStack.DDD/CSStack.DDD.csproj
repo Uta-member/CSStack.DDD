@@ -26,8 +26,12 @@
     <Copyright>Copyright (c) 2026 Uta Sugane</Copyright>
     <Description>A lightweight toolkit of building blocks for Domain-Driven Design (DDD) in C#. It provides interfaces and base classes for value objects, entities, aggregate roots, domain events, repositories and the unit of work, with no dependency on any persistence technology.</Description>
     <PackageTags>DDD;DomainDrivenDesign;CleanArchitecture;OnionArchitecture;ValueObject;Entity;AggregateRoot;DomainEvents;Repository;UnitOfWork</PackageTags>
-    <PackageReleaseNotes>Version 0.3.0.
+    <PackageReleaseNotes>Version 1.0.0.
 
+First stable release. The changes below are relative to 0.2.0.
+
+- Clarifies unit-of-work disposal and retry rules, provides .NET Framework-compatible infrastructure examples, and documents the C# 12 requirement for the examples.
+- Finalizes the public API baseline and runs tests with the release version before publishing.
 - Adds Under(name, index) to compose zero-based collection element paths such as Lines[2].Quantity. Negative indices throw ArgumentOutOfRangeException. This is an additive API change; the existing Under(name) overload remains supported.
 - Adds the abstract DomainEvent(DateTimeOffset OccurredAt) record implementing IDomainEvent. EventId defaults to a new Guid and can be initialized with a stored identifier when restoring an event. OccurredAt is still supplied by the caller. This is an additive API change; existing IDomainEvent implementations remain supported.
 - DomainValidationException messages now include the paths and type names of the first 10 validation errors in input order, followed by the number of remaining errors. Errors with an empty path are listed by type name alone; error property values are not included. The Errors property still retains every error. Public API signatures are unchanged.

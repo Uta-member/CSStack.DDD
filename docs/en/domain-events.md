@@ -104,12 +104,13 @@ public async Task CommitAsync(CancellationToken cancellationToken = default)
 
 	foreach (var work in _pending) await work(transaction, cancellationToken);
 	await WriteOutboxAsync(domainEvents, transaction, cancellationToken); // written in the same transaction as the aggregates
-	await transaction.CommitAsync(cancellationToken);
+	cancellationToken.ThrowIfCancellationRequested();
+	transaction.Commit();
 }
 ```
 
 - `_registeredAggregates` is a `List<IDomainEventSource>`.
-- If `CommitAsync` fails, neither the changes to the aggregates nor the events are written. A change that never happened is never dispatched.
+- If the transaction is rolled back, neither the changes to the aggregates nor the events are persisted. Dispose the failed unit of work and discard its aggregates: `PullDomainEvents()` has already cleared their events. For an operation that is safe to retry, create a new scope and rerun the whole use case from loading. Do not retry `CommitAsync` or save the same aggregate instances in another unit of work. If the commit outcome is unknown, for example after a connection loss, establish the persisted outcome or use application-level idempotency before retrying.
 
 ## Reacting to events
 
@@ -136,7 +137,7 @@ internal sealed class OutboxRelay(IServiceScopeFactory scopes, OutboxStore outbo
 				try
 				{
 					// a scope per event, so the unit of work and the transaction are separate from the original change
-					await using var scope = scopes.CreateAsyncScope();
+					using var scope = scopes.CreateScope();
 					var unitOfWork = scope.ServiceProvider.GetRequiredService<DapperUnitOfWork>();
 
 					await ReactAsync(scope.ServiceProvider, record.Deserialize(), stoppingToken); // how handlers are invoked is up to the application

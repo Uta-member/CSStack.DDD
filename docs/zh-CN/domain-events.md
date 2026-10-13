@@ -104,12 +104,13 @@ public async Task CommitAsync(CancellationToken cancellationToken = default)
 
 	foreach (var work in _pending) await work(transaction, cancellationToken);
 	await WriteOutboxAsync(domainEvents, transaction, cancellationToken); // 在与聚合相同的事务中写入
-	await transaction.CommitAsync(cancellationToken);
+	cancellationToken.ThrowIfCancellationRequested();
+	transaction.Commit();
 }
 ```
 
 - `_registeredAggregates` 是 `List<IDomainEventSource>`。
-- 如果 `CommitAsync` 失败，聚合的变更和事件都不会被写入。从未真正发生的变更永远不会被分发。
+- 如果事务已回滚，聚合的变更和事件都不会被持久化。请释放失败的工作单元，并丢弃其聚合实例：`PullDomainEvents()` 已经清除了这些实例的事件。对于可以安全重试的操作，请创建新的作用域，从加载开始重新执行整个用例。不要只重试 `CommitAsync`，也不要在另一个工作单元中保存同一聚合实例。如果提交结果未知，例如连接中断后，请先确认持久化结果，或通过应用层的幂等机制保证安全，再进行重试。
 
 ## 对事件作出响应
 
@@ -136,7 +137,7 @@ internal sealed class OutboxRelay(IServiceScopeFactory scopes, OutboxStore outbo
 				try
 				{
 					// 为每个事件创建作用域，因此工作单元和事务也与原始变更分开
-					await using var scope = scopes.CreateAsyncScope();
+					using var scope = scopes.CreateScope();
 					var unitOfWork = scope.ServiceProvider.GetRequiredService<DapperUnitOfWork>();
 
 					await ReactAsync(scope.ServiceProvider, record.Deserialize(), stoppingToken); // 如何调用处理器由应用程序决定

@@ -10,7 +10,7 @@ dotnet add package CSStack.DDD
 
 CSStack.DDD 面向 .NET Standard 2.0、.NET 8 和 .NET 10，因此也可以在 .NET Framework（推荐 4.7.2 或更高版本）中使用。由于不使用反射或运行时代码生成，在 .NET 8 及更高版本中也支持 Native AOT 和裁剪（trimming）。
 
-本文档中的示例使用了 record。要在 .NET Framework 中使用 record，请在项目文件中将 `LangVersion` 设置为 `9.0` 或更高版本（例如 `latest`），并在项目中定义以下类型（也可以使用 PolySharp 等 polyfill 包）。
+本文档中的示例使用了集合表达式和主构造函数等 C# 12 功能。请将 `LangVersion` 设置为 `12.0` 或更高版本，并使用支持该版本的编译器。record 本身只需要 C# 9 或更高版本。在 .NET Framework 中，还需要在项目中定义以下类型（也可以使用 PolySharp 等 polyfill 包）。
 
 ```csharp
 namespace System.Runtime.CompilerServices

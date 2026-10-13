@@ -19,7 +19,7 @@ CSStack.DDD provides interfaces and base classes for value objects, entities, ag
 
 - .NET Standard 2.0 or later (.NET 8 or later, .NET Framework 4.7.2 or later, and so on)
 - Compatible with Native AOT and trimming on .NET 8 or later
-- C# 9 or later to implement value objects as records ([details](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/getting-started.md#installation))
+- C# 9 or later to implement value objects as records; C# 12 or later to compile the examples ([details](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/getting-started.md#installation))
 
 ## Installation
 

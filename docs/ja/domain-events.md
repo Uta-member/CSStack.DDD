@@ -104,12 +104,13 @@ public async Task CommitAsync(CancellationToken cancellationToken = default)
 
 	foreach (var work in _pending) await work(transaction, cancellationToken);
 	await WriteOutboxAsync(domainEvents, transaction, cancellationToken); // 集約と同じトランザクションで書き込む
-	await transaction.CommitAsync(cancellationToken);
+	cancellationToken.ThrowIfCancellationRequested();
+	transaction.Commit();
 }
 ```
 
 - `_registeredAggregates` は `List<IDomainEventSource>` です。
-- `CommitAsync` が失敗すると、集約の変更もイベントも書き込まれません。実際には起きなかった変更が配信されることはありません。
+- トランザクションがロールバックされた場合、集約の変更もイベントも永続化されません。失敗した Unit of Work を破棄し、その集約インスタンスも再利用しないでください。`PullDomainEvents()` によってイベントは既にクリアされています。再試行しても安全な操作は、新しいスコープで読み込みからユースケース全体をやり直します。`CommitAsync` だけを再試行したり、同じ集約インスタンスを別の Unit of Work で保存したりしないでください。接続断などでコミット結果が不明な場合は、永続化結果を確認するか、アプリケーション側の冪等性を確保してから再試行します。
 
 ## イベントへの反応
 
@@ -136,7 +137,7 @@ internal sealed class OutboxRelay(IServiceScopeFactory scopes, OutboxStore outbo
 				try
 				{
 					// イベントごとにスコープを作るので、Unit of Work とトランザクションも元の変更とは別になる
-					await using var scope = scopes.CreateAsyncScope();
+					using var scope = scopes.CreateScope();
 					var unitOfWork = scope.ServiceProvider.GetRequiredService<DapperUnitOfWork>();
 
 					await ReactAsync(scope.ServiceProvider, record.Deserialize(), stoppingToken); // ハンドラーの呼び出し方はアプリケーションが決める

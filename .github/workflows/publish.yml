@@ -38,6 +38,9 @@ jobs:
       - name: Build
         run: dotnet build CSStack.DDD.slnx -c Release -p:Version=${{ steps.version.outputs.version }}
 
+      - name: Test
+        run: dotnet test --solution CSStack.DDD.slnx -c Release --no-build -p:Version=${{ steps.version.outputs.version }}
+
       - name: Pack
         run: dotnet pack src/CSStack.DDD/CSStack.DDD.csproj -c Release --no-build -p:Version=${{ steps.version.outputs.version }} -o artifacts
 

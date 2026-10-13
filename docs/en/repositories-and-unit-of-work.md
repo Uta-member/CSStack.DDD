@@ -72,6 +72,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 - If the member does not exist, `GetAsync` throws `AggregateNotFoundException`. Handle it once in the presentation layer, for example by returning HTTP 404.
 - Repositories and the unit of work share the same connection within a DI scope (one per request).
 - There is no rollback method. If the unit of work is disposed without being committed, the changes are discarded.
+- Treat the unit of work as a single-use object. After a successful commit or a failure, dispose it and discard the aggregate instances. For an operation that is safe to retry after a rollback, create a new scope and rerun the whole use case from loading; events already pulled from the old aggregates cannot be recovered by calling `CommitAsync` again. If the commit outcome is unknown, establish the persisted outcome or use application-level idempotency before retrying.
 - Domain services do not commit. They operate on the aggregates they receive, and the application service loads, saves and commits.
 
 ## Implementing the infrastructure
@@ -128,17 +129,18 @@ In `CommitAsync`, call `PullDomainEvents()` on each registered aggregate through
 The following sketch shows the parts that an implementation needs. It is not a complete implementation.
 
 ```csharp
-internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IAsyncDisposable
+internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IDisposable
 {
 	private DbTransaction? _transaction;
-	private readonly Dictionary<object, long> _loaded = new(ReferenceEqualityComparer.Instance); // aggregate → token
+	private readonly Dictionary<object, long> _loaded = new(AggregateReferenceComparer.Instance); // aggregate → token
 	private readonly List<Func<DbTransaction, CancellationToken, Task>> _pending = [];
 
 	internal async Task<DbTransaction> GetTransactionAsync(CancellationToken cancellationToken)
 	{
 		if (_transaction is not null) return _transaction;
 		await connection.OpenAsync(cancellationToken);
-		return _transaction = await connection.BeginTransactionAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		return _transaction = connection.BeginTransaction();
 	}
 
 	internal void MarkLoaded(object aggregate, long token) => _loaded[aggregate] = token;
@@ -150,16 +152,27 @@ internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, I
 		var transaction = await GetTransactionAsync(cancellationToken);
 		foreach (var work in _pending) await work(transaction, cancellationToken);
 		// pull domain events from the registered aggregates, and write them to the outbox here (see Domain events)
-		await transaction.CommitAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		transaction.Commit();
 	}
 
-	public async ValueTask DisposeAsync()
+	public void Dispose()
 	{
-		if (_transaction is not null) await _transaction.DisposeAsync(); // rolls back if not committed
-		await connection.DisposeAsync();
+		if (_transaction is not null) _transaction.Dispose(); // rolls back if not committed
+		connection.Dispose();
+	}
+
+	private sealed class AggregateReferenceComparer : IEqualityComparer<object>
+	{
+		public static AggregateReferenceComparer Instance { get; } = new();
+
+		bool IEqualityComparer<object>.Equals(object? x, object? y) => ReferenceEquals(x, y);
+		int IEqualityComparer<object>.GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 	}
 }
 ```
+
+This example uses synchronous transaction and disposal APIs so that it also works on .NET Framework 4.7.2. `AggregateReferenceComparer` compares object references because the token belongs to the particular loaded instance, whereas entity equality compares identifiers. Database reads and writes can still be asynchronous. The cancellation token is checked before starting or committing a transaction, but cannot interrupt these synchronous calls.
 
 ```csharp
 public void Save(Order order) => _unitOfWork.Enqueue(async (transaction, cancellationToken) =>
