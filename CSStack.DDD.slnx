@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CSStack.DDD/CSStack.DDD.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>

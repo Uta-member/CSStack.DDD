@@ -1,0 +1,162 @@
+# 校验
+
+## 诊断与强制
+
+CSStack.DDD 将校验分为两种角色。
+
+| | 诊断 | 关卡 |
+|---|---|---|
+| 由谁负责 | `IValidatable.Validate()` | 实体的操作 |
+| 做什么 | 报告所有问题 | 拒绝无效的变更 |
+| 怎么做 | **返回**错误 | **抛出** `DomainValidationException` |
+| 为什么 | 可以收集并合并所有错误。若使用异常，遇到第一个错误就会中止。 | 调用方无法忽略。 |
+
+`Validate()` 只负责报告。强制执行集中在一处，即实体的操作中，因此可以通过测试这些操作来验证。
+
+## 校验错误
+
+错误的种类由其类型表示，描述错误的值则是该类型的属性。不存在需要解析的字符串代码或字典。
+
+| 类型 | 含义 |
+|---|---|
+| `Required` | 需要值但缺失。 |
+| `InvalidFormat` | 值不符合预期格式。 |
+| `TooLong(MaxLength, ActualLength)` | 值过长。 |
+| `TooShort(MinLength, ActualLength)` | 值过短。 |
+| `OutOfRange<T>(Min, Max, Actual)` | 值超出允许范围。 |
+
+通过派生 `ValidationError` 来定义领域特有的错误。
+
+```csharp
+public sealed record UnderAge(int MinimumAge, int ActualAge) : ValidationError;
+```
+
+错误是 record，因此按值比较。这让它们在测试中很容易断言：`Assert.Equal(new TooLong(20, 25) { Path = "Name" }, error)`。
+
+## 路径
+
+`ValidationError.Path` 表示错误发生的位置，例如 `Address.PostalCode` 或 `Lines[2].Quantity`。空路径表示对象本身。
+
+每一层只用 `Under` 加上自己的成员名。值对象并不知道自己在哪里被使用。
+
+```
+OrderLine.Quantity.Validate()    → TooLong { Path = "" }
+  ↓ OrderLine 添加 .Under("Quantity")
+OrderLine.Validate()             → TooLong { Path = "Quantity" }
+  ↓ Order 添加 .Under("Lines[2]")
+Order.Validate()                 → TooLong { Path = "Lines[2].Quantity" }
+```
+
+```csharp
+public IReadOnlyList<ValidationError> Validate() =>
+[
+	.. ShippingAddress.Validate().Under(nameof(ShippingAddress)),
+	.. DeliveryPeriod.Validate().Under(nameof(DeliveryPeriod)),
+	.. Lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+];
+```
+
+跨越多个属性的规则（例如“开始日期必须早于结束日期”）以空路径报告，作为整个对象的错误。
+
+## 关卡
+
+在实体的操作中使用 `ThrowIfInvalid`。
+
+```csharp
+// 单个输入
+public void ChangeShippingAddress(Address address)
+{
+	address.Validate().Under(nameof(ShippingAddress)).ThrowIfInvalid();
+	ShippingAddress = address;
+}
+
+// 多个输入及业务策略
+public static Order Place(OrderId id, Address address, Period period, IReadOnlyList<OrderLine> lines)
+{
+	List<ValidationError> errors =
+	[
+		.. address.Validate().Under(nameof(ShippingAddress)),
+		.. period.Validate().Under(nameof(DeliveryPeriod)),
+		.. lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+	];
+	if (lines.Count == 0)
+	{
+		errors.Add(new Required { Path = nameof(Lines) });
+	}
+	errors.ThrowIfInvalid();
+
+	return new Order(id, address, period, lines);
+}
+```
+
+## 两类规则
+
+| | 值的规则 | 操作的策略 |
+|---|---|---|
+| 示例 | 电子邮件地址包含 `@`；金额不为负数 | 注册时姓名不超过 20 个字符；会员必须年满 18 岁 |
+| 随时间变化 | 很少变化 | 由业务决定何时变化 |
+| 位置 | 值对象的 `Validate()` | 实体的操作 |
+
+两者都由操作来强制执行，而不在重建时执行，因此按旧规则保存的数据始终可以加载。
+
+## 将错误转换为消息
+
+错误本身不包含消息。请在表示层中统一组装消息。
+
+```csharp
+public sealed class ValidationMessageFormatter
+{
+	public string Format(ValidationError error) => error switch
+	{
+		Required => "This field is required.",
+		InvalidFormat => "The format is invalid.",
+		TooLong e => $"Must be {e.MaxLength} characters or fewer.",
+		TooShort e => $"Must be {e.MinLength} characters or more.",
+		_ => "The value is invalid.",
+	};
+}
+```
+
+对于基于类层次结构的 `switch`，编译器不会检查是否覆盖了所有类型，因此请保留 `_` 分支。
+
+## ASP.NET Core 示例
+
+在全局统一处理一次 `DomainValidationException`。这样控制器和用例中就不再需要错误处理代码。
+
+```csharp
+public sealed class DomainValidationExceptionHandler(ValidationMessageFormatter formatter) : IExceptionHandler
+{
+	public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
+	{
+		if (exception is not DomainValidationException validation)
+		{
+			return false;
+		}
+
+		var errors = validation.Errors
+			.GroupBy(e => e.Path)
+			.ToDictionary(g => g.Key, g => g.Select(formatter.Format).ToArray());
+
+		context.Response.StatusCode = StatusCodes.Status400BadRequest;
+		await context.Response.WriteAsJsonAsync(new ValidationProblemDetails(errors), cancellationToken);
+		return true;
+	}
+}
+```
+
+路径的形式与 ASP.NET Core `ModelState` 的键相同，因此客户端可以将其映射到对应的输入字段。
+
+## 使用表单中的名称校验输入
+
+表单或请求 DTO 中的名称可能与领域中的名称不同（例如表单中是 `ZipCode`，领域中是 `Address.PostalCode`）。由于值对象不在构造函数中校验，你可以直接校验每个字段，并加上表单所用的名称。
+
+```csharp
+List<ValidationError> errors =
+[
+	.. new Email(request.Email).Validate().Under(nameof(request.Email)),
+	.. new PostalCode(request.ZipCode).Validate().Under(nameof(request.ZipCode)),
+];
+errors.ThrowIfInvalid();
+```
+
+规则依然只在值对象中定义一次。领域中的关卡仍作为最后一道防线保留。

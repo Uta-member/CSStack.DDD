@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Title>CSStack.DDD</Title>
+    <Description>
+A lightweight toolkit of building blocks for Domain-Driven Design (DDD) in C#.
+
+It provides interfaces and base classes for value objects, entities, aggregate roots, domain events, repositories and the unit of work, with no dependency on any persistence technology. It works with EF Core, Dapper or any other data access library.
+
+Key design principles:
+- Value objects enforce equality by their attributes, and entities enforce equality by their identifiers.
+- Validation reports errors as typed records instead of throwing, and the operations of entities decide when to enforce them.
+- Aggregates record domain events, and the infrastructure pulls them on commit (suitable for the outbox pattern).
+- Repositories do not manage transactions; the unit of work in the application layer commits all changes together.
+    </Description>
+    <PackageIcon>CSStack.png</PackageIcon>
+    <PackageTags>DDD;DomainDrivenDesign;CleanArchitecture;OnionArchitecture;ValueObject;Entity;AggregateRoot;DomainEvents;Repository;UnitOfWork</PackageTags>
+    <PackageReleaseNotes>
+Initial release.
+
+Domain (CSStack.DDD.Domain):
+- IValueObject and ISingleValueObject: value objects with equality by attributes.
+- IEntity and Entity: entities with equality by identifier. Equals and GetHashCode are sealed in the base class.
+- IAggregateRoot and AggregateRoot: aggregate roots that record domain events.
+- IDomainEvent and IDomainEventSource: domain events and a non-generic interface for collecting them from any aggregate.
+- IRepository and IDeletableRepository: repositories that register aggregates to be saved or deleted on commit.
+- IValidatable, ValidationError and DomainValidationException: validation with typed errors and member paths (for example, "Address.PostalCode").
+- Built-in validation errors: Required, InvalidFormat, TooLong, TooShort and OutOfRange.
+- ValidationErrorExtensions: Under to prefix error paths, and ThrowIfInvalid to throw when any error exists.
+
+Application (CSStack.DDD.Application):
+- IUnitOfWork: commits all registered changes in a single transaction.
+- ConcurrencyConflictException: a common exception for concurrency conflicts detected by the infrastructure.
+    </PackageReleaseNotes>
+    <Authors>Uta Sugane</Authors>
+    <Version>0.1.0</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="CSStack.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
