@@ -51,7 +51,7 @@ public sealed record UnderAge(int MinimumAge, int ActualAge) : ValidationError;
 OrderLine.Quantity.Validate()    → TooLong { Path = "" }
   ↓ OrderLine が .Under("Quantity") を追加
 OrderLine.Validate()             → TooLong { Path = "Quantity" }
-  ↓ Order が .Under("Lines[2]") を追加
+  ↓ Order が .Under("Lines", 2) を追加
 Order.Validate()                 → TooLong { Path = "Lines[2].Quantity" }
 ```
 
@@ -60,9 +60,11 @@ public IReadOnlyList<ValidationError> Validate() =>
 [
 	.. ShippingAddress.Validate().Under(nameof(ShippingAddress)),
 	.. DeliveryPeriod.Validate().Under(nameof(DeliveryPeriod)),
-	.. Lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+	.. Lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 ];
 ```
+
+コレクションの要素には `Under(name, index)` を使い、`Lines[2].Quantity` のようなパスを組み立てます。インデックスは 0 から始まり、負の値を渡すと `ArgumentOutOfRangeException` がスローされます。元のエラーとその型・値は保持され、結果を列挙するまでエラーは列挙されません。上の例のように、インデックス付きの `SelectMany` オーバーロードと組み合わせれば、各要素を順番に検証できるため、専用の `ValidateEach` ヘルパーは不要です。
 
 複数のプロパティにまたがるルール（たとえば「開始日は終了日より前でなければならない」）は、オブジェクト全体のエラーとして、空のパスで報告します。
 
@@ -85,7 +87,7 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 	[
 		.. address.Validate().Under(nameof(ShippingAddress)),
 		.. period.Validate().Under(nameof(DeliveryPeriod)),
-		.. lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+		.. lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 	];
 	if (lines.Count == 0)
 	{

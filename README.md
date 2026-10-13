@@ -92,6 +92,8 @@ public sealed class RegisterMemberUseCase(IRepository<Member, MemberId> members,
 }
 ```
 
+For collection elements, `line.Validate().Under(nameof(Lines), i)` produces paths such as `Lines[2].Quantity`. See [Validation](https://github.com/Uta-member/CSStack.DDD/blob/master/docs/en/validation.md) for validating all elements with `SelectMany`.
+
 ## Documentation
 
 | Topic | Description |

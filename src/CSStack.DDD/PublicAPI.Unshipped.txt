@@ -68,3 +68,4 @@ static CSStack.DDD.Domain.DomainEvent.operator ==(CSStack.DDD.Domain.DomainEvent
 virtual CSStack.DDD.Domain.DomainEvent.EqualityContract.get -> System.Type!
 virtual CSStack.DDD.Domain.DomainEvent.Equals(CSStack.DDD.Domain.DomainEvent? other) -> bool
 virtual CSStack.DDD.Domain.DomainEvent.PrintMembers(System.Text.StringBuilder! builder) -> bool
+static CSStack.DDD.Domain.ValidationErrorExtensions.Under(this System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>! errors, string! name, int index) -> System.Collections.Generic.IEnumerable<CSStack.DDD.Domain.ValidationError!>!

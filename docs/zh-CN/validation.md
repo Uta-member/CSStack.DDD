@@ -51,7 +51,7 @@ public sealed record UnderAge(int MinimumAge, int ActualAge) : ValidationError;
 OrderLine.Quantity.Validate()    → TooLong { Path = "" }
   ↓ OrderLine 添加 .Under("Quantity")
 OrderLine.Validate()             → TooLong { Path = "Quantity" }
-  ↓ Order 添加 .Under("Lines[2]")
+  ↓ Order 添加 .Under("Lines", 2)
 Order.Validate()                 → TooLong { Path = "Lines[2].Quantity" }
 ```
 
@@ -60,9 +60,11 @@ public IReadOnlyList<ValidationError> Validate() =>
 [
 	.. ShippingAddress.Validate().Under(nameof(ShippingAddress)),
 	.. DeliveryPeriod.Validate().Under(nameof(DeliveryPeriod)),
-	.. Lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+	.. Lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 ];
 ```
+
+对于集合元素，使用 `Under(name, index)` 构建 `Lines[2].Quantity` 这样的路径。索引从 0 开始；传入负值会抛出 `ArgumentOutOfRangeException`。原始错误及其类型和值会被保留，只有在枚举结果时才会枚举错误。如上例所示，将其与带索引的 `SelectMany` 重载结合，即可按顺序校验每个元素，因此无需单独的 `ValidateEach` 辅助方法。
 
 跨越多个属性的规则（例如“开始日期必须早于结束日期”）以空路径报告，作为整个对象的错误。
 
@@ -85,7 +87,7 @@ public static Order Place(OrderId id, Address address, Period period, IReadOnlyL
 	[
 		.. address.Validate().Under(nameof(ShippingAddress)),
 		.. period.Validate().Under(nameof(DeliveryPeriod)),
-		.. lines.SelectMany((line, i) => line.Validate().Under($"{nameof(Lines)}[{i}]")),
+		.. lines.SelectMany((line, i) => line.Validate().Under(nameof(Lines), i)),
 	];
 	if (lines.Count == 0)
 	{
