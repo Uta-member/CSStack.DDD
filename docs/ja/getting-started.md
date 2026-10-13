@@ -131,8 +131,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email));
 		members.Save(member);
@@ -140,6 +139,8 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 	}
 }
 ```
+
+`GetAsync` は `CSStack.DDD.Application` の拡張メソッドです。会員が存在しない場合は `AggregateNotFoundException` をスローします。集約が存在しないことが通常の結果である場合は、代わりに `FindAsync` を使います。
 
 `Save` は集約を登録するだけです。`CommitAsync` が、登録されたすべての集約とそのドメインイベントを 1 つのトランザクションで書き込みます（イベントは Outbox に書き込みます）。イベントへの反応は、コミットの後に Outbox の発行プロセスが別のトランザクションで実行します。
 
@@ -151,6 +152,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 |---|---|---|
 | `DomainValidationException` | 操作の入力がルールに違反しています。`Errors` にすべての違反が含まれます。 | 400 |
 | `DomainException` から派生したその他の型 | 入力に関するものではないビジネスルールが操作を拒否しました。ドメインで定義します。 | 422 |
+| `AggregateNotFoundException` | ユースケースが求めた集約が存在しません。`GetAsync` がスローします。 | 404 |
 | `ConcurrencyConflictException` | 別のトランザクションが先に集約を変更しました。 | 409 |
 
 ASP.NET Core での例は [バリデーション](validation.md) を参照してください。

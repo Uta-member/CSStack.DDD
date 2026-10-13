@@ -7,6 +7,8 @@
 | `IRepository<TAggregate, TId>` | 领域层 | 查找聚合，并登记待保存的聚合。 |
 | `IDeletableRepository<TAggregate, TId>` | 领域层 | 此外还可登记待删除的聚合。 |
 | `IUnitOfWork` | 应用层 | 在一个事务中提交所有已登记的变更。 |
+| `GetAsync`（`IRepository` 的扩展方法） | 应用层 | 获取应当存在的聚合，不存在时抛出 `AggregateNotFoundException`。 |
+| `AggregateNotFoundException` | 应用层 | 报告用例所请求的聚合不存在。 |
 | `ConcurrencyConflictException` | 应用层 | 报告另一个事务抢先修改了某个聚合。 |
 
 领域并不知道事务的存在。事务是用例的边界，属于应用层关心的问题。
@@ -27,6 +29,7 @@ public interface IDeletableRepository<TAggregate, TId> : IRepository<TAggregate,
 ```
 
 - 遵循 .NET 中 `Find` 的惯例，聚合不存在时 `FindAsync` 返回 `null`。
+- 在用例中，如果聚合应当存在，请使用扩展方法 `GetAsync`（位于 `CSStack.DDD.Application`）。它不会返回 `null`，而是抛出 `AggregateNotFoundException`。如果聚合不存在属于正常结果，请使用 `FindAsync`。
 - `Save` 和 `Delete` **只负责登记**聚合。在调用 `IUnitOfWork.CommitAsync` 之前不会写入任何内容。这也是它们是同步方法的原因。
 - `Save` 不区分插入和更新，由实现来决定（见下文）。
 
@@ -57,8 +60,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email), DateTimeOffset.UtcNow);
 		members.Save(member);
@@ -67,6 +69,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 }
 ```
 
+- 如果会员不存在，`GetAsync` 会抛出 `AggregateNotFoundException`。请在表示层统一处理一次（例如返回 HTTP 404）。
 - 在同一个 DI 作用域（每个请求一个）内，仓储与工作单元共享同一个连接。
 - 没有回滚方法。如果工作单元在未提交的情况下被释放，变更就会被丢弃。
 - 领域服务不负责提交。它们只操作接收到的聚合，加载、保存和提交由应用服务负责。

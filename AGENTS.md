@@ -8,7 +8,7 @@ CSStack.DDD は、C# でドメイン駆動設計（DDD）を行うための軽�
 
 - 値オブジェクト、エンティティ、集約ルート、ドメインイベント、リポジトリ、Unit of Work のインターフェースと基底クラスを提供する。
 - 永続化技術（EF Core、Dapper など）には一切依存しない。外部パッケージへの依存もない。
-- `v0.1.0` をリリース済み。
+- `v0.2.0` までリリース済み。
 
 ## ディレクトリ構成
 
@@ -25,7 +25,8 @@ src/CSStack.DDD/
     Repository/                  IRepository, IDeletableRepository
     Validation/                  IValidatable, ValidationError（と組み込みエラー）, DomainValidationException, ValidationErrorExtensions
   Application/                   名前空間 CSStack.DDD.Application
-                                 IUnitOfWork, ConcurrencyConflictException
+                                 IUnitOfWork, ConcurrencyConflictException, AggregateNotFoundException,
+                                 RepositoryExtensions（GetAsync）
   Polyfills/                     netstandard2.0 向けの IsExternalInit
   PublicAPI.Shipped.txt          リリース済みの公開 API（全ターゲット共通）
   PublicAPI.Unshipped.txt        未リリースの公開 API の変更（全ターゲット共通）
@@ -122,6 +123,7 @@ GitHub でリリースを公開すると、`.github/workflows/publish.yml` が N
 - エンティティの等価性は識別子による。`Entity` の `Equals` と `GetHashCode` は sealed。
 - ドメインイベントは集約が記録し、インフラストラクチャがコミット時に `PullDomainEvents()` で取り出す。`AggregateRoot` は `PullDomainEvents()` を明示的に実装し、`IDomainEventSource` 経由でだけ呼べるようにしている（`DomainEvents` は public）。
 - リポジトリは `FindAsync` と `Save` だけを持つ（`Add`/`Update` は持たない）。削除は `IDeletableRepository` に分ける。リポジトリはトランザクションを扱わず、`IUnitOfWork` がコミットする。
+- 集約が存在しないことをエラーとするかはユースケースが決める。`FindAsync` は `null` を返し、アプリケーション層の拡張メソッド `GetAsync` が `AggregateNotFoundException` をスローする（`DomainException` からは派生しない）。
 - ドメインは `Version` を持たない。同時実行の競合はインフラストラクチャが検出し、`ConcurrencyConflictException` をスローする。
 
 次のものは意図的に提供していません。追加を提案する前に、設計判断のページの理由を確認してください。

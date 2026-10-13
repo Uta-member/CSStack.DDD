@@ -131,8 +131,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 {
 	public async Task ExecuteAsync(Guid memberId, string email, CancellationToken cancellationToken)
 	{
-		var member = await members.FindAsync(new MemberId(memberId), cancellationToken)
-			?? throw new KeyNotFoundException($"Member {memberId} was not found.");
+		var member = await members.GetAsync(new MemberId(memberId), cancellationToken);
 
 		member.ChangeEmail(new Email(email));
 		members.Save(member);
@@ -140,6 +139,8 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 	}
 }
 ```
+
+`GetAsync` 是 `CSStack.DDD.Application` 中的扩展方法。会员不存在时，它会抛出 `AggregateNotFoundException`。如果聚合不存在属于正常结果，请改用 `FindAsync`。
 
 `Save` 只负责登记聚合。`CommitAsync` 会在一个事务中写入所有已登记的聚合及其领域事件（事件写入发件箱）。提交之后，由发件箱发布进程在另一个事务中对事件作出响应。
 
@@ -151,6 +152,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 |---|---|---|
 | `DomainValidationException` | 操作的输入违反了规则。`Errors` 中包含所有违规项。 | 400 |
 | 派生自 `DomainException` 的其他类型 | 与输入无关的业务规则拒绝了操作。在领域中定义。 | 422 |
+| `AggregateNotFoundException` | 用例所请求的聚合不存在。由 `GetAsync` 抛出。 | 404 |
 | `ConcurrencyConflictException` | 另一个事务抢先修改了该聚合。 | 409 |
 
 ASP.NET Core 的示例请参阅[校验](validation.md)。
