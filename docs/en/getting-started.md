@@ -8,7 +8,7 @@ This guide walks through the building blocks of CSStack.DDD by modeling a simple
 dotnet add package CSStack.DDD
 ```
 
-CSStack.DDD targets .NET Standard 2.0, .NET 8 and .NET 10, so it can also be used from .NET Framework (4.7.2 or later is recommended).
+CSStack.DDD targets .NET Standard 2.0, .NET 8 and .NET 10, so it can also be used from .NET Framework (4.7.2 or later is recommended). On .NET 8 and later, it is compatible with Native AOT and trimming because it uses no reflection or runtime code generation.
 
 The examples in this documentation use records. To use records on .NET Framework, set `LangVersion` to `9.0` or later (for example, `latest`) in your project file, and define the following type in your project (or use a polyfill package such as PolySharp).
 

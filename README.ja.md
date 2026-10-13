@@ -18,6 +18,7 @@ CSStack.DDD は、値オブジェクト、エンティティ、集約ルート�
 ## 動作要件
 
 - .NET Standard 2.0 以降に対応した環境（.NET 8 以降、.NET Framework 4.7.2 以降など）
+- .NET 8 以降では Native AOT とトリミングに対応
 - 値オブジェクトを record で実装する場合は C# 9 以降（[詳細](docs/ja/getting-started.md#インストール)）
 
 ## インストール
