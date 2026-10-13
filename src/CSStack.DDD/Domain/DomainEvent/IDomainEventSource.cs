@@ -12,6 +12,10 @@ namespace CSStack.DDD.Domain
 		/// <summary>
 		/// Gets the domain events recorded since they were last pulled.
 		/// </summary>
+		/// <remarks>
+		/// This is a read-only view for checking which events an operation raised, for example in tests.
+		/// Reading it does not clear the events.
+		/// </remarks>
 		IReadOnlyList<IDomainEvent> DomainEvents { get; }
 
 		/// <summary>
@@ -19,7 +23,8 @@ namespace CSStack.DDD.Domain
 		/// </summary>
 		/// <remarks>
 		/// Retrieval and clearing are combined into a single operation so that events are not dispatched twice.
-		/// This is intended to be called by the infrastructure when changes are committed.
+		/// This is intended to be called only by the infrastructure when changes are committed.
+		/// <see cref="AggregateRoot{TSelf, TId}"/> implements it explicitly, so it is not visible on the aggregate itself.
 		/// </remarks>
 		/// <returns>The domain events recorded since they were last pulled.</returns>
 		IReadOnlyList<IDomainEvent> PullDomainEvents();

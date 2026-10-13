@@ -1,3 +1,4 @@
+using System.Reflection;
 using CSStack.DDD.Domain;
 
 namespace CSStack.DDD.Tests
@@ -75,6 +76,14 @@ namespace CSStack.DDD.Tests
 
 			Assert.Equal([first], pulled);
 			Assert.Equal([second], order.DomainEvents);
+		}
+
+		[Fact]
+		public void PullDomainEventsIsNotPublicOnAggregate()
+		{
+			var method = typeof(Order).GetMethod(nameof(IDomainEventSource.PullDomainEvents), BindingFlags.Public | BindingFlags.Instance);
+
+			Assert.Null(method);
 		}
 	}
 }

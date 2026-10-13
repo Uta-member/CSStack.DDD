@@ -116,7 +116,7 @@ A rule across aggregates, such as "email addresses are unique among members", is
 
 ### Collecting domain events
 
-In `CommitAsync`, call `PullDomainEvents()` on each registered aggregate and write the events to the outbox in the same transaction as the aggregates. Do not react to the events here. The outbox publisher reacts to them in a transaction separate from the original change. Only when the business requires immediate consistency, you can also react to them before commit. See [Domain events](domain-events.md#when-to-dispatch).
+In `CommitAsync`, call `PullDomainEvents()` on each registered aggregate through `IDomainEventSource` and write the events to the outbox in the same transaction as the aggregates. Do not react to the events here. The outbox publisher reacts to them in a transaction separate from the original change. Only when the business requires immediate consistency, you can also react to them before commit. See [Domain events](domain-events.md#when-to-dispatch).
 
 ### Example: Dapper
 

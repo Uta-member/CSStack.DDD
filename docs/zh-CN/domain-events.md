@@ -63,6 +63,7 @@ foreach (var aggregate in registeredAggregates)
 
 - `IDomainEventSource` 是非泛型接口，因此无需反射即可从任意类型的聚合中收集事件。
 - `PullDomainEvents()` 在一次操作中返回事件并将其清空，因此同一事件不会因失误被分发两次。
+- `AggregateRoot<TSelf, TId>` 显式实现 `PullDomainEvents()`，因此只能通过 `IDomainEventSource` 调用，而不能在聚合本身上调用。这样可以防止应用服务或领域代码在提交前取出事件，导致事件被清空而无法写入发件箱。如需检查某个操作产生了哪些事件（例如在测试中），请读取不会清空事件的 `DomainEvents`。
 
 ## 何时分发
 

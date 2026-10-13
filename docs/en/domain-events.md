@@ -63,6 +63,7 @@ foreach (var aggregate in registeredAggregates)
 
 - `IDomainEventSource` is non-generic, so events can be collected from aggregates of any type without reflection.
 - `PullDomainEvents()` returns the events and clears them in one operation, so the same event is never dispatched twice by mistake.
+- `AggregateRoot<TSelf, TId>` implements `PullDomainEvents()` explicitly, so it can be called only through `IDomainEventSource`, not on the aggregate itself. This prevents application services and domain code from pulling the events before commit, which would clear them and keep them out of the outbox. To check which events an operation raised, for example in tests, read `DomainEvents`, which does not clear them.
 
 ## When to dispatch
 

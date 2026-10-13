@@ -90,7 +90,7 @@ GitHub でリリースを公開すると、`.github/workflows/publish.yml` が N
 - 検証の強制はエンティティの操作で行い、`ThrowIfInvalid()` で `DomainValidationException` をスローする。永続化からの再構築では検証もイベント発行もしない。
 - エラーは文字列コードではなく、`ValidationError` から派生した型付きの record で表す。パスはドット区切りの文字列で、`Under()` で各階層が組み立てる。
 - エンティティの等価性は識別子による。`Entity` の `Equals` と `GetHashCode` は sealed。
-- ドメインイベントは集約が記録し、インフラストラクチャがコミット時に `PullDomainEvents()` で取り出す。
+- ドメインイベントは集約が記録し、インフラストラクチャがコミット時に `PullDomainEvents()` で取り出す。`AggregateRoot` は `PullDomainEvents()` を明示的に実装し、`IDomainEventSource` 経由でだけ呼べるようにしている（`DomainEvents` は public）。
 - リポジトリは `FindAsync` と `Save` だけを持つ（`Add`/`Update` は持たない）。削除は `IDeletableRepository` に分ける。リポジトリはトランザクションを扱わず、`IUnitOfWork` がコミットする。
 - ドメインは `Version` を持たない。同時実行の競合はインフラストラクチャが検出し、`ConcurrencyConflictException` をスローする。
 
