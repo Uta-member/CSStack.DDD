@@ -18,6 +18,7 @@ CSStack.DDD 为值对象、实体、聚合根、领域事件、仓储和工作�
 ## 环境要求
 
 - 支持 .NET Standard 2.0 的环境（.NET 8 或更高版本、.NET Framework 4.7.2 或更高版本等）
+- 在 .NET 8 或更高版本中支持 Native AOT 和裁剪（trimming）
 - 以 record 实现值对象时需要 C# 9 或更高版本（[详情](docs/zh-CN/getting-started.md#安装)）
 
 ## 安装

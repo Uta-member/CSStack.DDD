@@ -8,7 +8,7 @@
 dotnet add package CSStack.DDD
 ```
 
-CSStack.DDD は .NET Standard 2.0、.NET 8、.NET 10 を対象としているため、.NET Framework（4.7.2 以降を推奨）からも利用できます。
+CSStack.DDD は .NET Standard 2.0、.NET 8、.NET 10 を対象としているため、.NET Framework（4.7.2 以降を推奨）からも利用できます。リフレクションや実行時のコード生成を使っていないため、.NET 8 以降では Native AOT とトリミングにも対応しています。
 
 このドキュメントの例では record を使用しています。.NET Framework で record を使うには、プロジェクトファイルで `LangVersion` を `9.0` 以降（例えば `latest`）に設定し、プロジェクト内に次の型を定義してください（PolySharp などの polyfill パッケージを使っても構いません）。
 
