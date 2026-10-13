@@ -72,6 +72,7 @@ public sealed class ChangeMemberEmailUseCase(IMemberRepository members, IUnitOfW
 - 会員が存在しない場合、`GetAsync` は `AggregateNotFoundException` をスローします。プレゼンテーション層で 1 か所にまとめて処理します（たとえば HTTP 404 を返す）。
 - リポジトリと Unit of Work は、DI スコープ（リクエストごとに 1 つ）内で同じ接続を共有します。
 - ロールバック用のメソッドはありません。Unit of Work がコミットされずに破棄されると、変更は破棄されます。
+- Unit of Work は使い切りにします。コミット成功後も失敗後も破棄し、集約インスタンスを再利用しないでください。ロールバック後に再試行しても安全な操作は、新しいスコープで読み込みからユースケース全体をやり直します。既に取り出したイベントは `CommitAsync` を再度呼んでも戻りません。コミット結果が不明な場合は、永続化結果を確認するか、アプリケーション側の冪等性を確保してから再試行します。
 - ドメインサービスはコミットしません。受け取った集約を操作するだけで、読み込み・保存・コミットはアプリケーションサービスが行います。
 
 ## インフラストラクチャの実装
@@ -128,17 +129,18 @@ Save(order)
 次のスケッチは、実装に必要な部分を示したものです。完全な実装ではありません。
 
 ```csharp
-internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IAsyncDisposable
+internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, IDisposable
 {
 	private DbTransaction? _transaction;
-	private readonly Dictionary<object, long> _loaded = new(ReferenceEqualityComparer.Instance); // 集約 → トークン
+	private readonly Dictionary<object, long> _loaded = new(AggregateReferenceComparer.Instance); // 集約 → トークン
 	private readonly List<Func<DbTransaction, CancellationToken, Task>> _pending = [];
 
 	internal async Task<DbTransaction> GetTransactionAsync(CancellationToken cancellationToken)
 	{
 		if (_transaction is not null) return _transaction;
 		await connection.OpenAsync(cancellationToken);
-		return _transaction = await connection.BeginTransactionAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		return _transaction = connection.BeginTransaction();
 	}
 
 	internal void MarkLoaded(object aggregate, long token) => _loaded[aggregate] = token;
@@ -150,16 +152,27 @@ internal sealed class DapperUnitOfWork(DbConnection connection) : IUnitOfWork, I
 		var transaction = await GetTransactionAsync(cancellationToken);
 		foreach (var work in _pending) await work(transaction, cancellationToken);
 		// ここで、登録された集約からドメインイベントを取り出し、Outbox に書き込む（ドメインイベントを参照）
-		await transaction.CommitAsync(cancellationToken);
+		cancellationToken.ThrowIfCancellationRequested();
+		transaction.Commit();
 	}
 
-	public async ValueTask DisposeAsync()
+	public void Dispose()
 	{
-		if (_transaction is not null) await _transaction.DisposeAsync(); // コミットされていなければロールバックされる
-		await connection.DisposeAsync();
+		if (_transaction is not null) _transaction.Dispose(); // コミットされていなければロールバックされる
+		connection.Dispose();
+	}
+
+	private sealed class AggregateReferenceComparer : IEqualityComparer<object>
+	{
+		public static AggregateReferenceComparer Instance { get; } = new();
+
+		bool IEqualityComparer<object>.Equals(object? x, object? y) => ReferenceEquals(x, y);
+		int IEqualityComparer<object>.GetHashCode(object obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 	}
 }
 ```
+
+この例は .NET Framework 4.7.2 でも動くように、トランザクションの開始・コミット・破棄に同期 API を使っています。トークンは読み込んだインスタンスに属するため、識別子で比較するエンティティの等価性ではなく、`AggregateReferenceComparer` で参照を比較します。データベースの読み書きは引き続き非同期にできます。トランザクションの開始・コミット前にキャンセルトークンを確認しますが、これらの同期呼び出しの実行中にはキャンセルできません。
 
 ```csharp
 public void Save(Order order) => _unitOfWork.Enqueue(async (transaction, cancellationToken) =>

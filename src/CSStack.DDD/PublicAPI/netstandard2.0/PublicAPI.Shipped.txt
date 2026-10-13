@@ -1,6 +1,8 @@
 #nullable enable
+abstract CSStack.DDD.Domain.DomainEvent.<Clone>$() -> CSStack.DDD.Domain.DomainEvent!
+override CSStack.DDD.Domain.AboveMaximum.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
+override CSStack.DDD.Domain.BelowMinimum.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 override CSStack.DDD.Domain.InvalidFormat.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
-override CSStack.DDD.Domain.OutOfRange<T>.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 override CSStack.DDD.Domain.Required.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 override CSStack.DDD.Domain.TooLong.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
 override CSStack.DDD.Domain.TooShort.<Clone>$() -> CSStack.DDD.Domain.ValidationError!
